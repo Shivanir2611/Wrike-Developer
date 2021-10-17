@@ -1,0 +1,412 @@
+<apex:page standardController="Quote__c" extensions="WrikeViewQuoteController" standardStylesheets="false" lightningStylesheets="true" docType="html-5.0" tabStyle="Quote__c">
+    <apex:includeScript value="{!$Resource.jQuery310}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.theme.min.css')}"/>
+    <apex:stylesheet value="{!$Resource.validationStyles}"/>
+    <apex:outputPanel rendered="{!wQuote.IsAmendment}">
+        <style>
+            .item-label {
+                width: 10% !important;
+            }
+
+            .item-data {
+                width: 40% !important;
+            }
+        </style>
+    </apex:outputPanel>
+
+    <style>
+        .inlineEditWrite:before, .inlineEditWriteOn:before {
+            background-color: rgb(0, 109, 204) !important;
+            margin-left: 20px !important;
+        }
+        .inlineEditWrite, .inlineEditWriteOn {
+            padding-top: 3px !important;
+        }
+        .data2Col.first.last {
+            width: 1px !important;
+        }
+        .inlineEditModified:hover:after {
+            background-color: transparent !important;
+            -webkit-mask-image: none !important;
+        }
+        .inlineEditUndoLink {
+            top: unset !important;
+            right: unset !important;
+        }
+        .inlineEditUndo {
+            margin-top: 0 !important;
+        }
+    </style>
+
+    <c:Preloader />
+    <apex:outputPanel id="main">
+        <apex:pageBlock title="Quote" >
+            <apex:outputPanel id="validationErrors">
+                <apex:outputPanel rendered="{!validationResults.IsNotValid && NOT(validationResults.HasOnlyInfo)}" styleClass="validation-message error" layout="block">
+                    <apex:form >
+                        <div>{!validationResults.result}</div>
+                        <apex:commandButton action="{!duplicate}" value="Duplicate with today's date" status="preloader"
+                                            rendered="{!IsDuplicateVisible && wQuote.validUntil < TODAY()}"/>
+                        <apex:outputpanel rendered="{!HasEditAccess && (wQuote.isTrial || wQuote.isApproved || wQuote.isProposal)}">
+                            <input id="cancelQuoteBtn" type="button" value="Cancel Quote" class="btn" onclick="showCancelQuoteDialog();"/>
+                            <c:ConfirmationDialog handler="{!cancelQuote}" dialogId="cancel-quote-confirm" rerender="main" status="preloader"
+                                                  message="Quote will be cancelled. Are you sure?" dialogname="showCancelQuoteDialog"/>
+                        </apex:outputpanel>
+                        <apex:outputpanel rendered="{!wQuote.isDraft && hasDeleteAccess}">
+                            <input id="deleteQuoteBtn" type="button" value="Delete" class="btn" onclick="showDeleteQuoteDialog();"/>
+                            <c:ConfirmationDialog handler="{!deleteQuote}" dialogId="delete-quote-confirm" rerender="main" status="preloader"
+                                                  message="Quote will be deleted. Are you sure?" dialogname="showDeleteQuoteDialog"/>
+                        </apex:outputpanel>
+                    </apex:form>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!validationResults.HasNotFatalErrors}"
+                              layout="block"
+                              style="min-width:980px;max-width:1250px">
+                <apex:variable var="readyForPdfGeneration"
+                               value="{!wQuote.isApproved && IF(wQuote.total != null, wQuote.total >= 0, true) && !wQuote.isApprovalPending}"/>
+                <apex:outputPanel id="widget"
+                                  rendered="{!(validationResults.IsValid || validationResults.HasOnlyInfo) && NOT(wQuote.isCancelled)}"
+                                  styleClass="validation-message {!IF(validationResults.HasOnlyInfo, 'warning', 'success')}"
+                                  html-role="alert" layout="block">
+                    <apex:form >
+                        <apex:outputPanel rendered="{!validationResults.HasOnlyInfo}">
+                            {!validationResults.result}
+                        </apex:outputPanel>
+                        <div style="padding-bottom:0.5em">
+                            <apex:outputPanel rendered="{!wQuote.isApprovalPending}">
+                                The quote requires approval.
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!wQuote.isProposal && pdf != null}">
+                                <span style="color:#000000">Generated PDF:&nbsp;&nbsp;</span>
+                                <apex:outputLink target="_blank" value="{!URLFOR($Action.Attachment.Download, pdf.Id)}">{!pdf.Name}</apex:outputLink>
+                                &nbsp;&#124;&nbsp;&nbsp;
+                                <a href="#" onclick="showDialog();">delete pdf</a>
+                                <c:ConfirmationDialog handler="{!deletePdf}" dialogId="delete-pdf-confirm" rerender="main" status="preloader"
+                                                      message="Quote PDF will be deleted. Are you sure?"/>
+                                &nbsp;&#124;&nbsp;&nbsp;
+                                <apex:outputLink value="/apex/quotePaymentSchedule?quoteId={!wQuote.Id}" target="_blank">payment schedule</apex:outputLink>
+                                &nbsp;&#124;&nbsp;&nbsp;
+                                <apex:outputLink target="_top" value="/apex/wrikeQuoteEmailPage?id={!wQuote.Id}">email quote</apex:outputLink>
+                                &nbsp;&#124;&nbsp;
+                                <apex:commandlink action="{!sendWithDocuSign}" value="send with DocuSign"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!wQuote.isSent}">
+                                Quote has been sent to Zuora successfully. <br/>
+                                <apex:outputPanel rendered="{!pdf != null}">
+                                    <apex:outputLink target="_blank" value="{!URLFOR($Action.Attachment.Download, pdf.Id)}">
+                                        View Quote PDF : {!pdf.Name}
+                                    </apex:outputLink>
+                                </apex:outputPanel>
+                                &nbsp;&#124;&nbsp;
+                                <apex:outputLink value="/apex/quotePaymentSchedule?quoteId={!wQuote.Id}" target="_blank">payment schedule</apex:outputLink>
+                            </apex:outputPanel>
+                        </div>
+                        <apex:variable var="activationAvailable" value="{!wQuote.isDraft && NOT(wQuote.IsEmptyOrOnlyExistingOrRemovedProducts)}"/>
+                        <apex:outputPanel rendered="{!activationAvailable && existingPrimaryQuoteId != null}">
+                            <strong>The <a href="/{!existingPrimaryQuoteId}" target="_blank">existing primary quote</a>
+                                will be cancelled once you activate this one.</strong>
+                        </apex:outputPanel>
+                        <apex:outputPanel id="btnSection" layout="block">
+                            <apex:commandButton action="{!editQuoteDetails}" value="Edit Quote Details"
+                                                rendered="{!wQuote.isEditable && !wQuote.isApprovalPending}"/>
+                            <apex:commandButton action="{!editProducts}" value="Edit Products"
+                                                rendered="{!wQuote.isEditable && !wQuote.isApprovalPending}"/>
+                            <apex:outputpanel rendered="{!wQuote.isDraft}">
+                                <input id="deleteQuoteBtn" type="button" value="Delete" class="btn" onclick="showDeleteQuoteDialog();"/>
+                                <c:ConfirmationDialog handler="{!deleteQuote}" dialogId="delete-quote-confirm" rerender="main" status="preloader"
+                                                      message="Quote will be deleted. Are you sure?" dialogname="showDeleteQuoteDialog"/>
+                                <script>
+                                    $( document ).ready(function() {
+                                        var hasDeleteAccess = '{!hasDeleteAccess}' === 'true';
+                                        if (!hasDeleteAccess) {
+                                            $('#deleteQuoteBtn').prop('disabled', 'disabled');
+                                            $('#deleteQuoteBtn').addClass('btnDisabled');
+                                        }
+                                    });
+                                </script>
+                            </apex:outputpanel>
+                            <apex:outputpanel rendered="{!wQuote.isTrial || wQuote.isApproved || wQuote.isProposal}">
+                                <input id="cancelQuoteBtn" type="button" value="Cancel Quote" class="btn" onclick="showCancelQuoteDialog();"/>
+                                <c:ConfirmationDialog handler="{!cancelQuote}" dialogId="cancel-quote-confirm" rerender="main" status="preloader"
+                                                      message="Quote will be cancelled. Are you sure?" dialogname="showCancelQuoteDialog"/>
+                            </apex:outputpanel>
+                            <apex:commandButton action="{!duplicate}" value="Duplicate with today's date" rendered="{!IsDuplicateVisible}"
+                                                status="preloader"/>
+                            <apex:outputPanel rendered="{!activationAvailable}">
+                                <apex:commandButton value="{!IF(existingPrimaryQuoteId == null, 'Activate', 'Mark primary and Activate')}"
+                                                    action="{!previewAndActivate}" status="preloader" reRender="main"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!readyForPdfGeneration}">
+                                <apex:commandButton value="Generate PDF"
+                                                    action="{!generatePdf}"
+                                                    status="preloader"
+                                                    reRender="main"
+                                                    disabled="{!NOT(wQuote.isAgencyVertical) && wQuote.agencyReliefOfferDiscount}"/>
+                                <apex:commandButton value="Generate PDF (No List Price)"
+                                                    action="{!generatePdfNoListPrice}"
+                                                    status="preloader"
+                                                    reRender="main"
+                                                    disabled="{!NOT(wQuote.isAgencyVertical) && wQuote.agencyReliefOfferDiscount}"/>
+                            </apex:outputPanel>
+                            <apex:commandButton value="Submit for Approval"
+                                                action="{!submitForApproval}"
+                                                reRender="widget, approvalHistory"
+                                                status="preloader"
+                                                rendered="{!wQuote.isTrial}"/>
+                            <apex:commandButton value="Cancel Approval"
+                                                action="{!cancelApproval}"
+                                                status="preloader"
+                                                rendered="{!wQuote.isApprovalPending}"
+                                                reRender="widget, approvalHistory"/>
+                            <apex:commandButton action="{!sendQuote}"
+                                                value="Send to Zuora"
+                                                rendered="{!wQuote.isProposal && pdf != null}"
+                                                disabled="{!(wQuote.hasCustomDeployment
+                                                                || wQuote.autoRenewalRemoval
+                                                                || wQuote.taxExempt)
+                                                            && !isAdmin && !isBilling}"/>
+                            <apex:commandButton action="{!moveToDraft}"
+                                                value="Move to draft"
+                                                rendered="{!wQuote.isProposal && pdf == null}"/>
+                        </apex:outputPanel>
+                    </apex:form>
+                </apex:outputPanel>
+                <apex:outputpanel id="cancelPanel" rendered="{!wQuote.isCancelled && isQuoteValid}" styleclass="validation-message error" layout="block">
+                    <apex:form >
+                        <span>Cancelled quote.</span>
+                        <div>
+                            <apex:commandButton rendered="{!existingPrimaryQuoteId == null}" action="{!restoreQuote}" value="Restore"/>
+                            <apex:outputPanel rendered="{!existingPrimaryQuoteId != null}" layout="block">
+                                <strong>The quote can't be restored because other opportunity's quote is marked as primary.</strong>
+                            </apex:outputPanel>
+                        </div>
+                    </apex:form>
+                </apex:outputpanel>
+                <apex:outputPanel rendered="{!wQuote.premiumSupportMismatch && wQuote.isDraft}"
+                                  styleClass="validation-message warning"
+                                  layout="block"
+                                  style="min-width:980px;max-width:1250px">
+                    Please go to Edit Products and re-add Premium Support to recalculate the cost. Otherwise, quote will be submitted for approval.
+                </apex:outputPanel>
+
+                <div style="width:60%;float:left">
+                    <apex:pageBlockSection columns="2" collapsible="false">
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Name"/>
+                            <apex:outputText value="{!wQuote.name}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Opportunity"/>
+                            <apex:outputLink value="/{!wQuote.opportunityId}" target="_blank">{!wQuote.opportunityName}</apex:outputLink>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Status"/>
+                            <apex:outputText value="{!wQuote.status}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Wrike"/>
+                            <apex:outputPanel >
+                                <apex:outputLink rendered="{!wQuote.wrikeAccountId != null}" value="{!wrikeAccountUrl}" target="_blank">Profile</apex:outputLink>
+                                <apex:outputText rendered="{!wQuote.wrikeAccountId == null}" value="No Wrike Account ID"/>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="{!wQuote.effectiveDateLabel}"/>
+                            <c:dateField value="{!wQuote.effectiveDate}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsAmendment || wQuote.IsRenewal}">
+                            <apex:outputLabel value="Zuora Account"/>
+                            <apex:outputLink value="{!$Setup.Settings__c.ZuoraUrl__c}apps/CustomerAccount.do?method=view&id={!wQuote.zuoraAccountId}" target="_blank">{!wQuote.zuoraAccountName}</apex:outputLink>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Valid Until"/>
+                            <c:dateField value="{!wQuote.validUntil}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsAmendment || wQuote.IsRenewal}">
+                            <apex:outputLabel value="Zuora Subscription"/>
+                            <apex:outputLink value="{!$Setup.Settings__c.ZuoraUrl__c}apps/Subscription.do?method=view&id={!wQuote.zuoraSubscriptionId}" target="_blank">{!wQuote.zuoraSubscriptionName}</apex:outputLink>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Invoice Date"/>
+                            <c:dateField value="{!wQuote.invoiceDate}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Payment Terms"/>
+                            <apex:outputText value="{!wQuote.paymentTerm}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Legal Terms"/>
+                            <apex:outputText value="{!wQuote.legalTermsLabel}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label"
+                                                   dataStyleClass="item-data"
+                                                   rendered="{!wQuote.existingLegalTermsType}">
+                            <apex:outputLabel value="{!IF(wQuote.legalTerms == 'EXISTING','Existing SaaS Agreement Effective Date','Existing MSA Effective Date')}"/>
+                            <c:dateField value="{!wQuote.legalTermsEffectiveDate}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="One-time discount included"/>
+                            <apex:form >
+                                <apex:inputCheckbox value="{!wQuote.onetimeDiscountIncluded}" disabled="true"/>
+                            </apex:form>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!wQuote.isAgencyVertical || wQuote.agencyReliefOfferDiscount}"
+                                                   labelStyleClass="item-label"
+                                                   dataStyleClass="item-data">
+                            <apex:outputLabel value="Agency Relief Offer Discount"/>
+                            <apex:form >
+                                <apex:inputCheckbox value="{!wQuote.agencyReliefOfferDiscount}" disabled="true"/>
+                            </apex:form>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="Number of Teams or Processes"/>
+                            <apex:outputText value="{!wQuote.numberOfTeamsStringValue}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsAmendment || wQuote.IsRenewal}">
+                            <apex:outputLabel value="Current Term"/>
+                            <apex:outputText value="{!wQuote.currentTerm}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data">
+                            <apex:outputLabel value="{!IF(wQuote.IsAmendment || wQuote.IsRenewal, 'New', 'Initial')} Term"/>
+                            <apex:outputText value="{!wQuote.newTerm}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsSubscription}">
+                            <apex:outputLabel value="Renewal Term"/>
+                            <apex:outputText value="{!wQuote.renewalTerm}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsSubscription}">
+                            <apex:outputLabel value="Tax Exempt"/>
+                            <apex:form >
+                                <apex:inputCheckbox value="{!wQuote.taxExempt}" disabled="true"/>
+                            </apex:form>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsSubscription}">
+                            <apex:outputLabel value="Tax Exempt Certificate Id"/>
+                            <apex:outputText value="{!IF(ISBLANK(wQuote.taxExemptCertificateId), '-', wQuote.taxExemptCertificateId)}"/>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsSent}">
+                            <apex:outputLabel value="Delta MRR"/>
+                            <c:currencyField value="{!wQuote.deltaMrr}" currency="{!wQuote.currencyCode}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!wQuote.IsSent}">
+                            <apex:outputLabel value="Total"/>
+                            <c:currencyField value="{!wQuote.total}" currency="{!wQuote.currencyCode}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label"
+                                                   dataStyleClass="item-data"
+                                                   rendered="{!NOT(ISBLANK(wQuote.creditCardLink)) && IsBilling && (wQuote.isApproved || wQuote.isProposal || wQuote.isSent)}">
+                            <apex:outputLabel value="Credit Card Page"/>
+                            <apex:outputLink target="_blank" value="{!wQuote.creditCardLink}">Link</apex:outputLink>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" dataStyleClass="item-data" rendered="{!IsAdmin}">
+                            <apex:outputLabel value="Admin"/>
+                            <apex:outputLink target="_blank" value="/{!wQuote.id}?nooverride=1">View</apex:outputLink>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" rendered="{!NOT(ISBLANK(wQuote.approvalReason))}">
+                            <apex:outputLabel value="Reason For Approval"/>
+                            <apex:outputText value="{!wQuote.approvalReason}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem labelStyleClass="item-label" rendered="{!NOT(ISBLANK(wQuote.discountReason))}">
+                            <apex:outputLabel value="Reason For Discount"/>
+                            <apex:outputText value="{!wQuote.discountReason}" />
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem labelStyleClass="item-label">
+                            <apex:outputLabel value="Approval Notes"/>
+                            <apex:outputPanel >
+                                <apex:form style="width:fit-content; min-width: 100px;">
+                                    <apex:outputField value="{!Quote__c.ApprovalNotes__c}">
+                                        <apex:inlineEditSupport rendered="{!wQuote.statusAsString == 'DRAFT' || wQuote.statusAsString == 'TRIAL'}"
+                                                                event="ondblClick"
+                                                                showOnEdit="saveButton, cancelButton"/>
+                                    </apex:outputField>
+                                    <br/>
+                                    <apex:commandButton id="saveButton" action="{!save}" value="Save" style="display:none"/>
+                                    <apex:commandButton id="cancelButton" action="{!cancel}" value="Cancel" style="display:none"/>
+                                </apex:form>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </div>
+                <apex:form style="float:left;" rendered="{!wQuote.IsAmendment}">
+                    <c:AmendmentTypeSelect selectedType="{!wQuote.amendmentTypeAsString}" width="380px" height="120px"/>
+                </apex:form>
+                <div style="clear:both;"></div>
+                <br/>
+                <c:WrikeQuoteProductsTable quoteItems="{!wQuote.items}"/>
+            </apex:outputPanel>
+        </apex:pageBlock>
+
+        <apex:pageBlock title="Preview" rendered="{!invoicePreview != null}">
+            <br/>
+            <apex:outputPanel rendered="{!wQuote.isDraft}">
+                <i>Please note that these values may differ if you activate the quote after today (Pacific Time).</i>
+                <br/><br/>
+            </apex:outputPanel>
+            <div>
+                Total:&nbsp;&nbsp;
+                <strong>
+                    <c:currencyField value="{!invoicePreview.totalChargeAmount}" currency="{!wQuote.currencyCode}"/>
+                </strong>
+                &nbsp;&nbsp;&nbsp;&nbsp;Delta MRR:&nbsp;&nbsp;
+                <strong>
+                    <c:currencyField value="{!invoicePreview.deltaMrr}" currency="{!wQuote.currencyCode}"/>
+                </strong>
+            </div>
+            <br/>
+            <c:zuoraQuoteProducts preview="{!invoicePreview}"
+                                  quoteBundle="{!quoteBundle}"
+                                  quote="{!wQuote}"
+                                  noListPrice="false"
+                                  tableClass="list"
+                                  headerRowClass="headerRow"
+                                  dataRowClass="dataRow"/>
+            <br/>
+        </apex:pageBlock>
+        <apex:outputPanel rendered="{!wQuote.isDraft && validationResults.IsValid && invoicePreview == null && NOT(wQuote.IsEmptyOrOnlyExistingOrRemovedProducts)}">
+            <apex:form >
+                <apex:actionFunction name="generatePreview" action="{!generatePreview}" status="preloader" reRender="main"/>
+            </apex:form>
+            <script>
+                $(document).ready(function() {
+                    generatePreview();
+                });
+            </script>
+        </apex:outputPanel>
+
+        <apex:outputPanel id="approvalHistory">
+            <apex:relatedList subject="{!wQuote.Id}" list="ProcessSteps" rendered="{!NOT(wQuote.isOriginalQuoteApproved)}">
+                <apex:facet name="header">
+                    <div class="pbTitle" style="margin-top: 5px">
+                        <h3>Approval History</h3>
+                    </div>
+                </apex:facet>
+            </apex:relatedList>
+            <apex:pageblock title="Approval History" rendered="{!wQuote.isOriginalQuoteApproved}">
+                Original quote <a href="/{!wQuote.originalQuoteId}">{!wQuote.originalQuoteName}</a> was approved.
+            </apex:pageblock>
+        </apex:outputPanel>
+
+        <apex:relatedList subject="{!wQuote.Id}" list="DocuSignStatus__r">
+            <apex:facet name="header">
+                <div class="pbTitle" style="margin-top: 5px">
+                    <h3>DocuSign Status</h3>
+                </div>
+            </apex:facet>
+        </apex:relatedList>
+
+    </apex:outputPanel>
+</apex:page>

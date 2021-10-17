@@ -1,0 +1,8 @@
+<apex:component >
+    <apex:attribute name="startDate"  type="Date" description="Start date "/>
+    <apex:attribute name="endDate"  type="Date" description="End date "/>
+<c:dateField rendered="{!startDate == endDate}" value="{!startDate}"/>
+<apex:outputPanel layout="none" rendered="{!startDate != endDate}">
+    <c:dateField value="{!startDate}"/>&nbsp;-&nbsp;<c:dateField value="{!endDate}"/>
+</apex:outputPanel>
+</apex:component>

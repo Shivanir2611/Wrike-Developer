@@ -1,0 +1,178 @@
+<aura:component controller="ContractRenewalsController">
+    <aura:attribute name="contractId" type="Id"/>
+    <aura:attribute name="renewalData" type="CPQRenewalService.CPQRenewalData"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <div class="slds-is-relative">
+        <lightning:card class="slds-p-around--none">
+            <aura:set attribute="title">
+                <lightning:layout>
+                    <lightning:layoutItem>
+                        <lightning:icon iconName="standard:contract" size="medium"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-p-left--medium slds-p-top--x-small">
+                        <h1>Contract Renewal: {!v.renewalData.contract.Account.Name}</h1>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:set>
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="3">
+                    <div class="slds-p-horizontal--large slds-p-left--none">
+                        <p class="slds-text-title">Contract</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                            <a href="{!'/lightning/r/Contract/'+ v.renewalData.contract.Id + '/view'}">{!v.renewalData.contract.ContractNumber}</a>
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="3">
+                    <div class="slds-p-horizontal--large slds-p-left--none">
+                        <p class="slds-text-title">Auto Renew</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                                {!v.renewalData.contract.Auto_Renew__c}
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="3">
+                    <div class="slds-p-horizontal--large slds-p-left--none">
+                        <p class="slds-text-title">Start Date</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                            <lightning:formattedDateTime value="{!v.renewalData.contract.StartDate}"/>
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="3">
+                    <div class="slds-p-horizontal--large slds-p-left--none">
+                        <p class="slds-text-title">End Date</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                            <lightning:formattedDateTime value="{!v.renewalData.contract.EndDate}"/>
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:card>
+        <br/>
+        <label class="slds-form-element__label">
+            <strong>{!if(empty(v.renewalData.activeContracts), 'No Active Contracts','Active Contracts')}</strong>
+        </label>
+        <aura:if isTrue="{!not(empty(v.renewalData.activeContracts))}">
+            <aura:set attribute="else">
+                <br/>
+            </aura:set>
+            <table class="slds-table slds-table_bordered slds-table_striped">
+                <thead>
+                <tr class="slds-text-heading_label">
+                    <th>Contract Number</th>
+                    <th>Wrike Account Id</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                <aura:iteration items="{!v.renewalData.activeContracts}" var="contract">
+                    <tr>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/Contract/' + contract.Id + '/view'}"
+                               class="truncated-name">{!contract.ContractNumber}</a>
+                        </td>
+                        <td>
+                            {!contract.Wrike_Account_ID__c}
+                        </td>
+                        <td>
+                            <lightning:formattedDateTime value="{!contract.StartDate}"/>
+                        </td>
+                        <td>
+                            <lightning:formattedDateTime value="{!contract.EndDate}"/>
+                        </td>
+                    </tr>
+                </aura:iteration>
+                </tbody>
+            </table>
+        </aura:if>
+        <br/>
+        <aura:if isTrue="{!not(empty(v.renewalData.gracePeriodStartDate))}">
+            <strong>
+                Grace Period Start Date:&nbsp;
+                <lightning:formattedDateTime value="{!v.renewalData.gracePeriodStartDate}"/>
+            </strong>
+            <br/>
+            <br/>
+        </aura:if>
+        <label class="slds-form-element__label">
+            <strong>{!if(empty(v.renewalData.activeOpportunities), 'No Active Opportunities','Active Opportunities')}</strong>
+        </label>
+        <aura:if isTrue="{!not(empty(v.renewalData.activeOpportunities))}">
+            <aura:set attribute="else">
+                <br/>
+            </aura:set>
+            <table class="slds-table slds-table_bordered slds-table_striped">
+                <thead>
+                    <tr class="slds-text-heading_label">
+                        <th>Name</th>
+                        <th>Stage</th>
+                        <th>Owner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <aura:iteration items="{!v.renewalData.activeOpportunities}" var="opp">
+                    <tr>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/Opportunity/' + opp.Id + '/view'}"
+                               class="truncated-name">{!opp.Name}</a>
+                        </td>
+                        <td>
+                            {!opp.StageName}
+                        </td>
+                        <td>
+                            {!opp.Owner.Name}
+                        </td>
+                    </tr>
+                </aura:iteration>
+                </tbody>
+            </table>
+        </aura:if>
+        <br/>
+        <aura:if isTrue="{!and(v.renewalData.contract.SBQQ__RenewalOpportunity__r.Probability == 0, v.renewalData.contract.SBQQ__RenewalOpportunity__r.IsClosed == true)}">
+            <strong>
+                Renewal opportunity is Closed Lost:
+                <br/>
+                <a target="_blank"
+                   href="{!'/lightning/r/Opportunity/' + v.renewalData.contract.SBQQ__RenewalOpportunity__r.Id + '/view'}">
+                        {!v.renewalData.contract.SBQQ__RenewalOpportunity__r.Name}
+                </a>
+            </strong>
+            <br/>
+            <br/>
+        </aura:if>
+        <aura:if isTrue="{!v.renewalData.renewalStatus == 'Expire'}">
+            <lightning:button variant="destructive-text"
+                              label="Expire Contract"
+                              onclick="{!c.expireContractAction}"/>
+        </aura:if>
+        <aura:if isTrue="{!and(v.renewalData.renewalStatus == 'GracePeriod', empty(v.renewalData.gracePeriodStartDate))}">
+            <lightning:button variant="brand-outline"
+                              label="Set Grace Period"
+                              onclick="{!c.setGracePeriodAction}"/>
+        </aura:if>
+        <aura:if isTrue="{!v.renewalData.renewalStatus == 'Renew'}">
+            <aura:if isTrue="{!empty(v.renewalData.contract.AutoRenewalQuote__r.Id)}">
+                <lightning:button variant="brand"
+                                  label="Create Renewal Quote"
+                                  onclick="{!c.createRenewalQuoteAction}"/>
+                <aura:set attribute="else">
+                    <h1>Renewal Quote:</h1>
+                    <a target="_blank"
+                       href="{!'/lightning/r/SBQQ__Quote__c/' + v.renewalData.contract.AutoRenewalQuote__r.Id + '/view'}"
+                       class="truncated-name">{!v.renewalData.contract.AutoRenewalQuote__r.Name}</a>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+        <aura:if isTrue="{!v.renewalData.renewalStatus == 'None'}">
+            <h1>No action required.</h1>
+        </aura:if>
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner size="large" variant="brand"/>
+        </aura:if>
+    </div>
+</aura:component>

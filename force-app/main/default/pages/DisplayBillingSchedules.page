@@ -1,0 +1,89 @@
+<apex:page controller="DisplayBillingSchedulesController" showHeader="false" sidebar="false" contentType="text/xml" cache="false" action="{!GetInvoices}">
+    <block>
+        <apex:outputText rendered="{!ShowPaymentSchedules}">
+            <block>
+                <block border-after-width="1px" margin-top="10px">
+                    <block margin-bottom="15px">
+                        <table table-layout="fixed" width="100%" >
+                            <table-body>             
+                                <table-row>
+                                    <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px" >
+                                        <block margin-left="10px" margin-top="2px" font-weight="bold" >{!HTMLENCODE(PAYMENTSCHEDULES)}</block>
+                                    </table-cell>
+                                </table-row>
+                            </table-body>
+                        </table>
+                    </block>
+                </block>
+            </block>
+            <block border-after-width="1px" margin-top="10px">
+                <!--<block font-family="arial" margin-top="2px" font-weight="bold" margin-bottom="2px" font-size="80%">{!HTMLENCODE(PAYMENTSCHEDULES)}</block>-->
+                <block margin-left="10px" margin-bottom="10px" font-size="70%">{!HTMLENCODE(PAYMENTSCHEDULEDESC)}</block>
+                
+                <block margin-bottom="15px" keep-together="always">
+                    <table table-layout="fixed" width="100%" >
+                        <!--<table-column column-width="20%"/>-->
+                        <table-column column-width="{!IF(AND(displaySubscriptionFees, displayOneTimeFees), '25%',IF(AND(displaySubscriptionFees==false, displayOneTimeFees==false),'50%','34%'))}"/>
+                        <apex:outputText rendered="{!displaySubscriptionFees}">
+                            <table-column column-width="{!IF(displayOneTimeFees, '25%', '33%')}"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayOneTimeFees}">
+                            <table-column column-width="{!IF(displaySubscriptionFees, '25%', '33%')}"/>
+                        </apex:outputText>
+                        <table-column column-width="{!IF(AND(displaySubscriptionFees, displayOneTimeFees), '25%',IF(AND(displaySubscriptionFees==false, displayOneTimeFees==false),'50%','33%'))}"/>
+                        <table-body>
+                            <table-row>
+                                <table-cell background-color="#04454D" color="White" keep-together.within-column="always" border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(INVOICEDATE)}</block>
+                                </table-cell>
+                                <apex:outputText rendered="{!displaySubscriptionFees}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">{!HTMLENCODE(SUBSCRIPTIONAMOUNT)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayOneTimeFees}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always" border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(ONETIMEFEES)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(INVOICETOTAL)}</block>
+                                </table-cell>
+                            </table-row>
+                            <apex:repeat var="EachRow" value="{!MainWrapper.BillScheduleList.BillScheduleList}">
+                                <table-row padding="2px">
+                                    <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="1pt">
+                                        <block>
+                                            <apex:outputText value="{0,date,MMM' 'dd', 'yyyy}">
+                                                <apex:param value="{!IF(EachRow.Invoice_Date__c = null, EachRow.Service_Start_Date__c, EachRow.Invoice_Date__c)}"/>
+                                            </apex:outputText>
+                                        </block>
+                                    </table-cell>
+                                    <apex:outputText rendered="{!displaySubscriptionFees}">
+                                        <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="1pt" >
+                                            <block>
+                                                <c:currencyField currency="{!EachRow.CurrencyIsoCode}" value="{!EachRow.Subscription_Amount__c}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayOneTimeFees}">
+                                        <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="1pt" >
+                                            <block>
+                                                <c:currencyField currency="{!EachRow.CurrencyIsoCode}" value="{!EachRow.One_Time_Fee_Amount__c}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                    <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="1pt" >
+                                        <block>
+                                            <c:currencyField currency="{!EachRow.CurrencyIsoCode}" value="{!EachRow.Invoice_Total__c}"/>
+                                        </block>
+                                    </table-cell>
+                                </table-row>
+                            </apex:repeat>
+                        </table-body>
+                    </table>
+                </block>
+            </block>
+        </apex:outputText>
+    </block>
+</apex:page>

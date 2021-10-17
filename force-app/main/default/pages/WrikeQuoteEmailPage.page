@@ -1,0 +1,5 @@
+<apex:page standardController="Quote__c" extensions="WrikeQuoteEmailController" tabStyle="Quote__c">
+    <apex:form >
+        <c:QuoteEmail parentId="{!quote.Opportunity__c}"  parentController="{!this}" backId="{!quote.Id}"/>
+    </apex:form>
+</apex:page>

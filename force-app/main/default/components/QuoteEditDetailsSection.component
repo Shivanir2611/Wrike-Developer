@@ -1,0 +1,542 @@
+<apex:component >
+    <apex:attribute name="quoteController" type="WrikeQuoteBaseController" description="WrikeQuoteBaseController" required="true"/>
+    <apex:attribute name="messageSection" type="String" description="messageSection" required="true"/>
+    <apex:attribute name="controlVisibility" type="Map" description="controlVisibility" required="false"/>
+
+    <style>
+        .i-icon {
+            vertical-align: middle;
+        }
+    </style>
+    <apex:outputPanel id="datepickerScript">
+        <script>
+            var baseConfig = {
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'mm/dd/yy'
+            };
+
+            var effectiveDateConfig = jQuery.extend(true, {}, baseConfig);
+            effectiveDateConfig['minDate'] = '{!quoteController.MinEffectiveDate}';
+            effectiveDateConfig['maxDate'] = '{!quoteController.MaxEffectiveDate}';
+
+            var validUntilConfig = jQuery.extend(true, {}, baseConfig);
+            validUntilConfig['minDate'] = '{!quoteController.MinVaidUntilDate}';
+            var maxValidUntilDate = '{!quoteController.MaxVaidUntilDate}';
+            if (maxValidUntilDate) {
+                validUntilConfig['maxDate'] = maxValidUntilDate;
+            }
+
+            var invoiceDateConfig = jQuery.extend(true, {}, baseConfig);
+            invoiceDateConfig['minDate'] = '{!quoteController.MinInvoiceDate}';
+            invoiceDateConfig['maxDate'] = '{!quoteController.MaxInvoiceDate}';
+
+            var legalTermsEffectiveDateConfig = jQuery.extend(true, {}, baseConfig);
+
+            function refreshInvoiceDatePicker() {
+                $( "input[id$='invoiceDate']" ).datepicker("destroy");
+                $( "input[id$='invoiceDate']" ).datepicker(invoiceDateConfig);
+                $( "input[id$='invoiceDate']" ).datepicker("refresh");
+            }
+
+            function refreshValidUntilPicker() {
+                $( "input[id$='validUntil']" ).datepicker("destroy");
+                $( "input[id$='validUntil']" ).datepicker(validUntilConfig);
+                $( "input[id$='validUntil']" ).datepicker("refresh");
+            }
+
+            function refreshLegalTermsEffectiveDatePicker() {
+                $("input[id$='legalTermsEffectiveDate']").datepicker("destroy");
+                $("input[id$='legalTermsEffectiveDate']").datepicker(legalTermsEffectiveDateConfig);
+                $("input[id$='legalTermsEffectiveDate']").datepicker("refresh");
+            }
+
+            function createDatePickers() {
+                $("input[id$='effectiveDate']").datepicker(effectiveDateConfig);
+                $("input[id$='validUntil']").datepicker(validUntilConfig);
+                $("input[id$='invoiceDate']").datepicker(invoiceDateConfig);
+                $("input[id$='legalTermsEffectiveDate']").datepicker(legalTermsEffectiveDateConfig);
+            }
+
+            $(document).ready(function(){
+                var newTermInput = $( "select[id$='newTerm']" ).attr("required", true);
+                var renewalTermInput = $( "select[id$='renewalTerm']" ).attr("required", true);
+
+                $( "input[id$='taxExempt']" ).change(function(){
+                    var taxExemptCertificateId = $( "input[id$='taxExemptCertificateId']" );
+                    if (this.checked) {
+                        taxExemptCertificateId.attr("required", true);
+                        taxExemptCertificateId.removeAttr("readonly");
+                        taxExemptCertificateId.closest("tr").show();
+                    } else {
+                        taxExemptCertificateId.removeAttr("required");
+                        taxExemptCertificateId.attr("readonly", true);
+                        taxExemptCertificateId.val('');
+                        taxExemptCertificateId.closest("tr").hide();
+                    }
+                });
+
+                createDatePickers();
+            })
+        </script>
+    </apex:outputPanel>
+    <apex:pageBlockSection id="quoteParams"
+                           title="{!IF(quoteController.wQuote.isAmendment, '', 'Quote Information')}"
+                           columns="1"
+                           collapsible="false">
+        <apex:componentBody />
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Quote Name" for="name"/>
+            <apex:outputPanel >
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:input value="{!quoteController.wQuote.name}" id="name" type="auto" styleClass="quoteInput"    />
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Company" for="company"/>
+            <apex:outputText value="{!quoteController.wQuote.companyName}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="{!quoteController.wQuote.effectiveDateLabel}" for="effectiveDate"/>
+            <apex:outputPanel id="effectiveDatePanel">
+                <apex:outputPanel styleClass="requiredInput" layout="inline"
+                                  rendered="{!(quoteController.wQuote.isSubscription && quoteController.isSetToFuture) || (quoteController.wQuote.isAmendment && controlVisibility['DATE'])}">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:inputText value="{!quoteController.wQuote.effectiveDateAsString}" id="effectiveDate" label="{!quoteController.wQuote.effectiveDateLabel}"
+                                    required="true" html-readonly="true">
+                        <apex:actionSupport event="onchange" action="{!quoteController.effectiveDateChangeHandler}"
+                                            reRender="invoiceDatePanel, validUntilPanel, datepickerScript" status="preloader"
+                                            oncomplete="refreshValidUntilPicker();refreshInvoiceDatePicker();"/>
+                    </apex:inputText>
+                    <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                        <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                        <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                            <div class="body">
+                                <span style="font-style: italic;">Date Constraints:</span>
+                                <apex:outputPanel rendered="{!quoteController.wQuote.isSubscription}">
+                                    <ul class="date-constraints">
+                                        <li>Can't be set to a past date due to finance compliance reasons because we can't back charge customers for days before the quote is accepted.</li>
+                                    </ul>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!quoteController.wQuote.isAmendment}">
+                                    <ul class="date-constraints">
+                                        <li>Can't be set to a date prior to the current subscription start date <b>({!quoteController.SubscriptionStartDate})</b> because it's not possible to amend inactive subscriptions.</li>
+                                        <apex:outputPanel layout="none"
+                                                          rendered="{!quoteController.wQuote.isAmendBeforeRenewal || quoteController.wQuote.isAmendBeforeRenewalAndRenew}">
+                                            <li>Can't be set to the current subscription end date <b>({!quoteController.SubscriptionEndDate})</b> or a later date because we can't amend expired subscriptions.</li>
+                                        </apex:outputPanel>
+                                        <li>Can't be set to a date prior to the first date of the current month <b>({!quoteController.FirstDateOfCurrentMonth})</b> due to accounting period limitations.</li>
+                                        <li>Can't be set to a past date due to finance compliance reasons because we can't back charge customers for days before the quote is accepted. <b>The rule doesn't apply to downgrade quotes.</b></li>
+                                    </ul>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+                <c:dateField value="{!quoteController.wQuote.effectiveDate}"
+                             rendered="{!(quoteController.wQuote.isSubscription && NOT(quoteController.isSetToFuture)) || (quoteController.wQuote.isRenewal) || (quoteController.wQuote.isAmendment && !controlVisibility['DATE'])}"/>
+                <apex:outputPanel rendered="{!quoteController.wQuote.isSubscription}" style="margin-left: 5px;">
+                    <apex:inputCheckbox id="setToFuture" value="{!quoteController.isSetToFuture}">
+                        <apex:actionSupport event="onchange" action="{!quoteController.setToFutureChangeHandler}"
+                                            reRender="effectiveDatePanel, invoiceDatePanel, datepickerScript, warning-panel" status="preloader"/>
+                    </apex:inputCheckbox>
+                    <apex:outputLabel value="{!quoteController.SetToFutureLabel}" for="setToFuture"/>
+                </apex:outputPanel>
+                <apex:outputPanel id="warning-panel" layout="block" style="margin-top: 5px;">
+                    <apex:outputPanel rendered="{!quoteController.isSetToFuture}" style="font-style: italic; font-weight: bold; font-size: 90%;">
+                        WARNING! Even if a customer signs an agreement today and enters CC info, subscription will not start before the specified date.<br/>
+                        AMs CSMs, Deployment specialist won't be able to start working with this account before the specified date either. Make sure a customer understands it.
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Valid Until" for="validUntil"/>
+            <apex:outputPanel id="validUntilPanel">
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:inputText value="{!quoteController.wQuote.ValidUntilAsString}" id="validUntil" required="true"
+                                    html-readonly="true">
+                        <apex:actionSupport event="onchange" reRender="validUntilDays"/>
+                    </apex:inputText>
+                    <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                        <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                        <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                            <div class="body">
+                                <span style="font-style: italic;">Date Constraints:</span>
+                                <apex:outputPanel rendered="{!quoteController.wQuote.isSubscription}">
+                                    <ul class="date-constraints">
+                                        <li>Can't be set to a past date. The quote will be expired after the valid until date and won't be available for processing.</li>
+                                        <li>Can't be set to a date later than the end of {!quoteController.wQuote.effectiveDateLabel}'s month <b>({!quoteController.LastDateOfEffectiveDateMonth})</b> due to finance compliance reasons. Please change the {!quoteController.wQuote.effectiveDateLabel} if you want to set the valid until date to a different month.</li>
+                                    </ul>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!quoteController.wQuote.isAmendment || quoteController.wQuote.isRenewal}">
+                                    <ul class="date-constraints">
+                                        <li>Can't be set to a past date. The quote will be expired after the valid until date and won't be available for processing.</li>
+                                        <li>Can't be set to the current subscription end date <b>({!quoteController.SubscriptionEndDate})</b> or a later date because we can't amend expired subscriptions.</li>
+                                        <li>Can't be set to a date later than the end of {!quoteController.wQuote.effectiveDateLabel}'s month <b>({!quoteController.LastDateOfEffectiveDateMonth})</b> due to finance compliance reasons. Please change the {!quoteController.wQuote.effectiveDateLabel} if you want to set the valid until date to a different month.</li>
+                                    </ul>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                    </div>
+                    <apex:outputPanel id="validUntilDays">
+                        <apex:outputPanel rendered="{!quoteController.QuoteValidDays != null}" style="font-style: italic; margin-left: 20px;">
+                            *The quote will be valid {!quoteController.QuoteValidDays} days only.
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Invoice Date" for="invoiceDate"/>
+            <apex:outputPanel >
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:outputPanel id="invoiceDatePanel">
+                        <apex:inputText value="{!quoteController.wQuote.invoiceDateAsString}" id="invoiceDate" required="true"
+                                        html-readonly="true" disabled="{!quoteController.disableInvoiceDate}"/>
+                        <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                            <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                            <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                                <div class="body">
+                                    <span style="font-style: italic;">Date Constraints:</span>
+                                    <ul class="date-constraints">
+                                        <li>Should be set a date within the {!quoteController.wQuote.effectiveDateLabel}'s month <b>({!quoteController.MinInvoiceDate} - {!quoteController.MaxInvoiceDate})</b> due to finance compliance reasons.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.wQuote.isAmendment || quoteController.wQuote.isRenewal}">
+            <apex:outputLabel value="Current Term"/>
+            <apex:outputText value="{!quoteController.wQuote.currentTerm}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="{!IF(quoteController.wQuote.isSubscription, 'Initial', 'New')} Term" for="newTerm"/>
+            <apex:outputPanel >
+                <apex:outputPanel styleClass="requiredInput" layout="block"
+                                  rendered="{!quoteController.wQuote.isSubscription || quoteController.wQuote.isRenewal || (quoteController.wQuote.isAmendment && controlVisibility['TERM'])}">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:selectList id="newTerm" value="{!quoteController.wQuote.newTerm}" required="true" size="1" style="width:50px;">
+                        <apex:selectOption itemValue="1"/>
+                        <apex:selectOption itemValue="12"/>
+                        <apex:selectOption itemValue="24"/>
+                        <apex:selectOption itemValue="36"/>
+                        <apex:selectOption itemValue="48"/>
+                        <apex:selectOption itemValue="60"/>
+                        <apex:actionSupport event="onchange" action="{!quoteController.changeTermHandler}"
+                                            status="preloader" reRender="{!messageSection}, renewalTermBlock, mainForm"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+                <apex:outputText value="{!quoteController.wQuote.newTerm}" rendered="{!quoteController.wQuote.isAmendment && !controlVisibility['TERM']}"/>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.wQuote.isSubscription}">
+            <apex:outputLabel value="Renewal Term" for="renewalTerm"/>
+            <apex:outputPanel >
+                <apex:outputPanel id="renewalTermBlock" styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:selectList id="renewalTerm" value="{!quoteController.wQuote.renewalTerm}" required="true" size="1" style="width:50px;">
+                        <apex:selectOption itemValue="1" itemDisabled="{!quoteController.wQuote.newTerm != 1}"/>
+                        <apex:selectOption itemValue="12"/>
+                        <apex:selectOption itemValue="24"/>
+                        <apex:selectOption itemValue="36"/>
+                        <apex:selectOption itemValue="48"/>
+                        <apex:selectOption itemValue="60"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Payment Terms" for="paymentTerm"/>
+            <apex:selectList id="paymentTerm" value="{!quoteController.wQuote.paymentTerm}" size="1" style="width: 165px">
+                <apex:selectOption itemValue="Due Upon Receipt"/>
+                <apex:selectOption itemValue="Net 30"/>
+                <apex:selectOption itemValue="Net 45"/>
+                <apex:selectOption itemValue="Net 60"/>
+            </apex:selectList>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Legal Terms" for="legalTerms"/>
+            <apex:outputPanel >
+                <apex:selectList id="legalTerms" value="{!quoteController.wQuote.legalTerms}" size="1" style="width: 350px">
+                    <apex:selectOptions value="{!quoteController.wQuote.legalTermsSelectOptions}"/>
+                    <apex:actionSupport event="onchange"
+                                        reRender="quoteParams,legalTermsInfo"
+                                        oncomplete="refreshLegalTermsEffectiveDatePicker()"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" class="infoIcon i-icon"/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            <apex:outputPanel id="legalTermsInfo">
+                                <ul style="padding:0;margin-left:0;margin-top:0;">
+                                    <li style="padding-top:5px;">
+                                        <apex:outputText rendered="{!quoteController.wQuote.legalTerms == 'DEFAULT'}">
+                                            <u>has referenced and will continue to reference https://www.wrike.com/terms/</u>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quoteController.wQuote.legalTerms == 'EXISTING' || quoteController.wQuote.legalTerms == 'NEW'}">
+                                            <u>has referenced and will continue to reference the legacy SaaS T&amp;Cs that the Customer signed before April 5</u>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quoteController.wQuote.legalTerms == 'ONLINE_MSA'}">
+                                            <u>references our new online terms that will be found at https://learn.wrike.com/enterprise-wmsa/</u>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quoteController.wQuote.legalTerms == 'EXISTING_MSA'}">
+                                            <u>references when a Customer has entered into our MSA on or after April 5</u>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quoteController.wQuote.legalTerms == 'NEW_MSA'}">
+                                            <u>references the new MSA which the Customer should sign</u>
+                                        </apex:outputText>
+                                    </li>
+                                </ul>
+                            </apex:outputPanel>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.wQuote.existingLegalTermsType}">
+            <apex:outputLabel value="{!IF(quoteController.wQuote.legalTerms == 'EXISTING','Existing SaaS Agreement Effective Date','Existing MSA Effective Date')}"
+                              for="legalTermsEffectiveDate"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block">
+                <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                <apex:outputPanel >
+                    <apex:inputText value="{!quoteController.wQuote.legalTermsEffectiveDateAsString}"
+                                    id="legalTermsEffectiveDate"
+                                    html-readonly="true"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="One-time discount included" for="onetimeDiscountIncluded"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block">
+                <apex:inputCheckbox id="onetimeDiscountIncluded"
+                                    value="{!quoteController.wQuote.onetimeDiscountIncluded}"
+                                    disabled="{!quoteController.wQuote.agencyReliefOfferDiscount && quoteController.wQuote.isAgencyVertical}">
+                    <apex:actionSupport event="onchange"
+                                        action="{!quoteController.changeOnetimeDiscountIncluded}"
+                                        reRender="agencyReliefOfferDiscount"
+                                        status="preloader"/>
+                </apex:inputCheckbox>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" class="infoIcon i-icon"/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            <apex:outputPanel id="onetimeDiscountIncludedInfo">
+                                Checking this box will add a special term in the quote that indicates the discount offered is a one-time special discount not to be expected upon renewal/other orders.
+                            </apex:outputPanel>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.wQuote.isAgencyVertical || quoteController.wQuote.agencyReliefOfferDiscount}">
+            <apex:outputLabel value="Agency Relief Offer Discount" for="agencyReliefOfferDiscount"/>
+            <apex:inputCheckbox id="agencyReliefOfferDiscount"
+                                value="{!quoteController.wQuote.agencyReliefOfferDiscount}"
+                                disabled="{!quoteController.wQuote.onetimeDiscountIncluded}">
+                <apex:actionSupport event="onchange"
+                                    action="{!quoteController.changeAgencyReliefOfferDiscount}"
+                                    reRender="onetimeDiscountIncluded"
+                                    status="preloader"/>
+            </apex:inputCheckbox>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Number of Teams or Processes"/>
+            <apex:outputPanel >
+                <apex:outputPanel id="numberOfTeamsOrProcessesBlock" styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:selectList id="numberOfTeamsOrProcesses" value="{!quoteController.wQuote.numberOfTeams}" required="true" size="1" style="width:50px;">
+                        <apex:selectOption itemValue="-1" itemLabel=""/>
+                        <apex:selectOption itemValue="1"/>
+                        <apex:selectOption itemValue="2"/>
+                        <apex:selectOption itemValue="3"/>
+                        <apex:selectOption itemValue="4"/>
+                        <apex:selectOption itemValue="5"/>
+                        <apex:selectOption itemValue="6" itemLabel="6+"/>
+                        <apex:selectOption itemValue="0" itemLabel="No deployment"/>
+                        <apex:actionSupport event="onchange" action="{!quoteController.changeNumberOfTeamsHandler}"
+                                            status="preloader" reRender="{!messageSection}, mainForm"/>
+                    </apex:selectList>
+                    <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                        <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                        <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                            <div class="body">
+                                Please input the total number of teams OR processes which we will be working with during deployment. Enter the greater of the number of teams or processes if you are looking at both.
+                            </div>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+    <apex:pageBlockSection id="taxSection"
+                           title="Legal Terms{!IF(quoteController.wQuote.isSubscription, ' & Tax exemption for nonprofit organizations', '')}"
+                           columns="1"
+                           collapsible="true">
+        <apex:pageBlockSectionItem html-style="{!IF(!quoteController.wQuote.isSubscription, 'display: none;', '')}">
+            <apex:outputLabel value="Tax Exempt" for="taxExempt"/>
+            <apex:inputCheckbox id="taxExempt" value="{!quoteController.wQuote.taxExempt}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem html-style="{!IF(!quoteController.wQuote.isSubscription || quoteController.wQuote.taxExempt == false, 'display: none;', '')}">
+            <apex:outputLabel value="Certificate Id" for="taxExemptCertificateId"/>
+            <apex:outputPanel >
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:inputText id="taxExemptCertificateId" value="{!quoteController.wQuote.taxExemptCertificateId}"
+                                    maxlength="32" size="32" html-readonly="{!quoteController.wQuote.taxExempt == false}"
+                                    style="width: 165px"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Additional Users at Same Rate" for="additionalUsers"/>
+            <apex:outputPanel >
+                <apex:selectList id="additionalUsers"
+                                 value="{!quoteController.wQuote.additionalUsers}"
+                                 size="1" style="width: 50px">
+                    <apex:selectOption itemValue="false" itemLabel="No"/>
+                    <apex:selectOption itemValue="true" itemLabel="Yes"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.AdditionalUsers__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Removal of Automatic Renewal" for="autoRenewalRemoval"/>
+            <apex:outputPanel >
+                <apex:selectList id="autoRenewalRemoval"
+                                 value="{!quoteController.wQuote.autoRenewalRemoval}"
+                                 size="1" style="width: 50px">
+                    <apex:selectOption itemValue="false" itemLabel="No"/>
+                    <apex:selectOption itemValue="true" itemLabel="Yes"/>
+                    <apex:actionSupport event="onchange" action="{!quoteController.changeAutoRenewalRemoval}"
+                                        status="preloader" reRender="renewalPriceProtection"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.AutoRenewalRemoval__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Price Protection at Renewal" for="renewalPriceProtection"/>
+            <apex:outputPanel >
+                <apex:selectList id="renewalPriceProtection"
+                                 value="{!quoteController.wQuote.renewalPriceProtection}"
+                                 disabled="{!quoteController.wQuote.autoRenewalRemoval}"
+                                 size="1" style="width: 165px">
+                    <apex:selectOption itemValue="" itemLabel="Specified by MSA"/>
+                    <apex:selectOption itemValue="5% YoY increase"/>
+                    <apex:selectOption itemValue="3% YoY increase"/>
+                    <apex:selectOption itemValue="YoY CPI Average"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.RenewalPriceProtection__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Removal of Publicity/Logo Rights" for="publicityRightsRemoval"/>
+            <apex:outputPanel >
+                <apex:selectList id="publicityRightsRemoval"
+                                 value="{!quoteController.wQuote.publicityRightsRemoval}"
+                                 size="1" style="width: 50px">
+                    <apex:selectOption itemValue="false" itemLabel="No"/>
+                    <apex:selectOption itemValue="true" itemLabel="Yes"/>
+                    <apex:actionSupport event="onchange" action="{!quoteController.changePublicityRightsRemoval}"
+                                        status="preloader" reRender="coMarketingAddition"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.PublicityRightsRemoval__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Addition of Co-Marketing (e.g., Case Study/Press Release)" for="coMarketingAddition"/>
+            <apex:outputPanel >
+                <apex:selectList id="coMarketingAddition"
+                                 value="{!quoteController.wQuote.coMarketingAddition}"
+                                 disabled="{!quoteController.wQuote.publicityRightsRemoval}"
+                                 size="1" style="width: 50px">
+                    <apex:selectOption itemValue="false" itemLabel="No"/>
+                    <apex:selectOption itemValue="true" itemLabel="Yes"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.CoMarketingAddition__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Governing Law" for="governingLaw"/>
+            <apex:outputPanel >
+                <apex:selectList id="governingLaw"
+                                 value="{!quoteController.wQuote.governingLaw}"
+                                 size="1" style="width: 165px">
+                    <apex:selectOption itemValue="" itemLabel="USA: California"/>
+                    <apex:selectOption itemValue="Delaware, USA" itemLabel="USA: Delaware"/>
+                    <apex:selectOption itemValue="England, United Kingdom" itemLabel="UK: England, UK"/>
+                    <apex:selectOption itemValue="Dublin, Ireland" itemLabel="EU: Dublin, Ireland"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.GoverningLaw__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Data Center" for="termsDataCenter"/>
+            <apex:outputPanel >
+                <apex:selectList id="termsDataCenter"
+                                 value="{!quoteController.wQuote.termsDataCenter}"
+                                 size="1" style="width: 50px">
+                    <apex:selectOption itemValue="" itemLabel="US"/>
+                    <apex:selectOption itemValue="EU"/>
+                </apex:selectList>
+                <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                    <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                    <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                        <div class="body">
+                            {!$ObjectType.Quote__c.fields.TermsDataCenter__c.InlineHelpText}
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+</apex:component>

@@ -1,0 +1,8 @@
+<design:component label="LightningiFrameComponent">
+    <design:attribute name="iframeUrl" label="Source URL"/>
+    <design:attribute name="width" label="Width" default="100%"/>
+    <design:attribute name="height" label="Height" default="858px"/>
+    <design:attribute name="style" label="Style" default="border: none; overflow: scroll;"/>
+    <design:attribute name="scrolling" label="Scrolling" default="auto"/>
+    <design:attribute name="frameBorder" label="Frame Border" default="0"/>
+</design:component>

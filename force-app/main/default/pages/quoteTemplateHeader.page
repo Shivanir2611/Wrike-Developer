@@ -1,0 +1,175 @@
+<apex:page controller="CPQQuoteTemplateHeaderController" showHeader="false" sidebar="false" cache="false" contentType="text/xml">
+    <table table-layout="fixed" width="100%">
+        <table-column column-width="75%"/>
+        <table-column column-width="25%"/>
+        <table-body>
+            <table-row>
+                <table-cell text-align="left">]
+                    <block><external-graphic src="data:img/png;base64,{!logoBase64}"></external-graphic></block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>{!template.SBQQ__CompanyName__c}</block>
+                    <block>{!template.SBQQ__CompanyStreet__c}</block>
+                    <block>{!template.SBQQ__CompanyCity__c}, {!template.SBQQ__CompanyState__c} {!template.SBQQ__CompanyPostalCode__c}, {!template.SBQQ__CompanyCountry__c}</block>
+                    <block>E-mail: {!salesRepEmail}</block>
+                </table-cell>
+            </table-row>
+        </table-body>
+    </table>
+    <table table-layout="fixed" width="100%" margin-top="10px">
+        <table-body>
+            <table-row>
+                <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px">
+                    <block margin-left="10px">{!IF(hasReseller, 'PARTNER ', '') + 'ORDER FORM DETAILS'}</block>
+                </table-cell>
+            </table-row>
+        </table-body>
+    </table>
+    <table table-layout="fixed" width="100%" margin-top="10px">
+        <table-column column-width="15%"/>
+        <table-column column-width="85%"/>
+        <table-body>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Order Number:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>{!quote.Name}</block>
+                </table-cell>
+            </table-row>
+            <apex:outputText rendered="{!NOT(ISBLANK(quote.PO_Number__c))}">
+                <table-row>
+                    <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                        <block>PO Number:</block>
+                    </table-cell>
+                    <table-cell height="8px" text-align="left" font-size="8px">
+                        <block>{!quote.PO_Number__c}</block>
+                    </table-cell>
+                </table-row>
+            </apex:outputText>
+        </table-body>
+    </table>
+    <table table-layout="fixed" width="100%" margin-top="10px">
+        <table-body>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-weight="bold" text-decoration="underline" font-size="8px">
+                    <apex:outputText rendered="{!hasReseller}">
+                        <block>Ship To (Reseller):</block>
+                    </apex:outputText>
+                    <apex:outputText rendered="{!NOT(hasReseller)}">
+                        <block>Ship To (For Sales Tax Purposes):</block>
+                    </apex:outputText>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-weight="bold" text-decoration="underline" font-size="8px">
+                    <apex:outputText rendered="{!hasReseller}">
+                        <block>Bill To (Reseller):</block>
+                    </apex:outputText>
+                    <apex:outputText rendered="{!NOT(hasReseller)}">
+                        <block>Bill To (For Invoicing):</block>
+                    </apex:outputText>
+                </table-cell>
+                <apex:outputText rendered="{!and(hasReseller, not(endCustomerNewLine))}">
+                    <table-cell height="8px" text-align="left" font-weight="bold" text-decoration="underline" font-size="8px">
+                        <block>End Customer:</block>
+                    </table-cell>
+                </apex:outputText>
+            </table-row>
+            <table-row>
+                <table-cell>
+                    <block><c:quoteTemplateHeaderContact contact="{!quote.QS_Ship_To__r}"/></block>
+                </table-cell>
+                <table-cell>
+                    <block><c:quoteTemplateHeaderContact contact="{!quote.QS_Bill_To__r}"/></block>
+                </table-cell>
+                <apex:outputText rendered="{!and(hasReseller, not(endCustomerNewLine))}">
+                    <table-cell>
+                        <block><c:quoteTemplateHeaderContact contact="{!quote.EndCustomer__r}"/></block>
+                    </table-cell>
+                </apex:outputText>
+            </table-row>
+            <apex:outputText rendered="{!and(hasReseller, endCustomerNewLine)}">
+                <table-row>
+                    <table-cell height="8px" text-align="left" font-weight="bold" text-decoration="underline" font-size="8px">
+                        <block>End Customer:</block>
+                    </table-cell>
+                    <table-cell><block></block></table-cell>
+                </table-row>
+                <table-row>
+                    <table-cell>
+                        <block><c:quoteTemplateHeaderContact contact="{!quote.EndCustomer__r}"/></block>
+                    </table-cell>
+                    <table-cell><block></block></table-cell>
+                </table-row>
+            </apex:outputText>
+        </table-body>
+    </table>
+    <table table-layout="fixed" width="100%" margin-top="10px">
+        <table-body>
+            <table-row>
+                <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px">
+                    <block margin-left="10px">{!IF(hasReseller, 'PARTNER ', '') + 'ORDER FORM INFORMATION'}</block>
+                </table-cell>
+            </table-row>
+        </table-body>
+    </table>
+    <table table-layout="fixed" width="100%" margin-top="10px">
+        <table-column column-width="15%"/>
+        <table-column column-width="35%"/>
+        <table-column column-width="15%"/>
+        <table-column column-width="35%"/>
+        <table-body>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Wrike Account ID:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>{!quote.WrikeAccountId__c}</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Billing Frequency:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>
+                        {!IF(quote.SBQQ__BillingFrequency__c == 'Upfront', 'Upfront in full', quote.SBQQ__BillingFrequency__c)}
+                    </block>
+                </table-cell>
+            </table-row>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Offer Expiry Date:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>
+                        <apex:outputText value="{0, date, MMMM d',' yyyy}">
+                            <apex:param value="{!quote.SBQQ__ExpirationDate__c}"/>
+                        </apex:outputText>
+                    </block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Payment Terms:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>{!quote.SBQQ__PaymentTerms__c}</block>
+                </table-cell>
+            </table-row>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Effective Date:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>
+                        <apex:outputText value="{0, date, MMMM d',' yyyy}">
+                            <apex:param value="{!quote.SBQQ__StartDate__c}"/>
+                        </apex:outputText>
+                    </block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Currency:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px">
+                    <block>{!quote.CurrencyIsoCode}</block>
+                </table-cell>
+            </table-row>
+        </table-body>
+    </table>
+</apex:page>

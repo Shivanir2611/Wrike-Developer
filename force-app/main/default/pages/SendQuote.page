@@ -1,0 +1,254 @@
+<apex:page controller="SendQuoteController" docType="html-5.0" lightningStylesheets="true" tabStyle="Quote__c">
+    <style>
+        input[type=date]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            display: none;
+        }
+
+        input[type="text"], select {
+            width: 225px;
+        }
+
+        table.detailList th > label {
+            white-space:nowrap;
+        }
+
+        label[for*=":required"]::after, label.required::after {
+            content: "*";
+            color: #FF0000;
+            padding-left: 3px;
+            font-size: 125%;
+            font-weight:bold;
+        }
+
+        div.payment-method {
+            padding: 0 10px 0 10px;
+        }
+
+        div.payment-method div.pbSubheader {
+            margin-top: 0;
+        }
+
+        div.payment-method.disabled {
+            opacity: 0.5;
+        }
+
+        div.payment-method.disabled:hover {
+            opacity: 0.7;
+        }
+    </style>
+    <apex:includeScript value="{!$Resource.jquery}"/>
+    <apex:stylesheet value="{!$Resource.validationStyles}"/>
+    <apex:slds />
+    <c:Preloader />
+    <apex:outputPanel id="errors">
+        <apex:outputPanel rendered="{!validationResults.isNotValid}">
+            <apex:pageBlock >
+                <apex:pageBlockButtons location="bottom">
+                    <apex:form >
+                        <apex:commandButton value="Back" action="{!back}"/>
+                    </apex:form>
+                </apex:pageBlockButtons>
+                <div class="validation-message error">
+                    {!validationResults.result}
+                </div>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    <apex:form rendered="{!validationResults.isValid}" id="form">
+        <apex:pageMessages />
+        <apex:pageBlock title="Billing Info">
+            <div>
+                <i>Please select payment method and populate/review the billing info.</i>
+            </div>
+            <br/>
+            <apex:pageBlockSection columns="3" collapsible="false" id="billingInfo" >
+                <apex:outputPanel layout="block"
+                                  rendered="{!creditCardBillingInfo != null}"
+                                  onclick="billingAddressSectionOnClick(this, 'zuoraCreditCard')"
+                                  styleClass="payment-method {!IF(paymentMethod == 'zuoraCreditCard','','disabled')}">
+                    <apex:actionRegion >
+                        <c:BillingAddress address="{!creditCardBillingInfo}"
+                                          header="Zuora (Credit Card)"
+                                          disabled="true"
+                                          emailAllwaysEditable="true"
+                                          updateCallback="checkPopulated"/>
+                        <br/>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'zuoraCreditCard' && (wQuote.IsSubscription || creditCardBillingInfo.defaultPaymentMethod)}"
+                                          styleClass="validation-message success">
+                            <strong>The customer will pay by the credit card.</strong>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'zuoraCreditCard' && NOT(wQuote.IsSubscription) && NOT(creditCardBillingInfo.defaultPaymentMethod)}"
+                                          styleClass="validation-message warning">
+                            <strong>The customer's payment method will be change to the credit card.</strong>
+                        </apex:outputPanel>
+                    </apex:actionRegion>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block"
+                                  onclick="billingAddressSectionOnClick(this, 'zuoraInvoice')"
+                                  styleClass="payment-method {!IF(paymentMethod == 'zuoraInvoice','','disabled')}">
+                    <apex:actionRegion >
+                        <c:BillingAddress address="{!existingBillingInfo}"
+                                          header="Zuora (Invoice)"
+                                          disabled="{!paymentMethod != 'zuoraInvoice'}"
+                                          updateCallback="checkPopulated"/>
+                        <br/>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'zuoraInvoice' && (creditCardBillingInfo == null || NOT(creditCardBillingInfo.defaultPaymentMethod))}"
+                                          styleClass="validation-message success">
+                            <strong>The customer will pay by invoice.</strong>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'zuoraInvoice' && creditCardBillingInfo != null && creditCardBillingInfo.defaultPaymentMethod}"
+                                          styleClass="validation-message warning">
+                            <strong>The customer's payment method will be changed from Credit Card to Invoice.</strong>
+                        </apex:outputPanel>
+                    </apex:actionRegion>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block"
+                                  rendered="{!quoteBillingInfo != null}"
+                                  onclick="billingAddressSectionOnClick(this, 'billingContactInvoice')"
+                                  styleClass="payment-method {!IF(paymentMethod == 'billingContactInvoice','','disabled')}">
+                    <apex:actionRegion >
+                        <c:BillingAddress address="{!quoteBillingInfo}"
+                                          header="Billing Contact (Invoice)"
+                                          disabled="{!paymentMethod != 'billingContactInvoice'}"
+                                          updateCallback="checkPopulated"/>
+                        <br/>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'billingContactInvoice' && (creditCardBillingInfo == null || NOT(creditCardBillingInfo.defaultPaymentMethod))}"
+                                          styleClass="validation-message success">
+                            <strong>The customer will pay by invoice.</strong>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="block"
+                                          rendered="{!paymentMethod == 'billingContactInvoice' && creditCardBillingInfo != null && creditCardBillingInfo.defaultPaymentMethod}"
+                                          styleClass="validation-message warning">
+                            <strong>The customer's payment method will be changed from Credit Card to Invoice.</strong>
+                        </apex:outputPanel>
+                    </apex:actionRegion>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <script>
+            var billingAddressSectionOnClick = function(section, method) {
+                if ($(section).hasClass("disabled")) {
+                    selectPaymentMethod(method)
+                }
+            }
+        </script>
+        <apex:actionFunction name="checkPopulated" action="{!null}" reRender="vatPanel,nextButton"/>
+        <apex:actionFunction name="selectPaymentMethod"
+                             action="{!selectPaymentMethod}"
+                             reRender="billingInfo,vatPanel,nextButton"
+                             status="preloader">
+            <apex:param name="paymentMethod" value="" />
+        </apex:actionFunction>
+        <apex:pageBlock title="Tax Exempt" rendered="{!wQuote.TaxExempt == true}">
+            <apex:pageBlockSection columns="2" collapsible="false">
+                <apex:inputCheckbox label="Tax Exempt" value="{!wQuote.TaxExempt}" disabled="true" style="margin-top:0"/>
+                <apex:outputText label="Certificate Id" value="{!wQuote.TaxExemptCertificateId}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:outputPanel id="vatPanel">
+            <apex:pageBlock title="VAT" rendered="{!vatNumberRequired}">
+                <apex:pageBlockSection columns="2" collapsible="false">
+                    <apex:inputText label="VAT Number" value="{!selectedBillingInfo.vatNumber}" id="requiredVatNumber" tabindex="10" maxlength="40">
+                        <apex:actionSupport event="onchange" action="{!checkVatNumber}" reRender="vatPanel,nextButton" status="checkVat"/>
+                    </apex:inputText>
+                </apex:pageBlockSection>
+                <apex:outputPanel id="messages">
+                    <apex:pageMessages />
+                    <apex:outputPanel rendered="{!vatOptional && NOT(isVatNumberValid)}">
+                        <apex:inputCheckbox value="{!isVatValidationIgnored}" id="ignoreVatValidation" onchange="checkPopulated();"/>&nbsp;
+                        <apex:outputLabel value="Ignore VAT validation" for="ignoreVatValidation"
+                                          style="font-weight:bold;color:#4a4a56;font-size:91%"/>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        <apex:pageBlock title="DocuSign">
+            <apex:outputPanel rendered="{!docuSignId == null}" style="color:#DD0000">
+                <strong>No signed DocuSign for the quote.</strong>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!docuSignId != null}">
+                <strong>The quote has been signed: <a href="/{!docuSignId}" target="_blank">DocuSign</a></strong>
+            </apex:outputPanel>
+            <br/>
+        </apex:pageBlock>
+        <apex:pageBlock title="Purchase Order Number">
+            <apex:pageBlockSection columns="2" collapsible="false">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Purchase Order #"/>
+                    <apex:inputText value="{!purchaseOrderNumber}" tabindex="11" maxlength="50"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputPanel style="min-width:350px;display:block;">
+                        <apex:iframe src="/apex/QuotePurchaseOrderUpload?quoteId={!wQuote.Id}"
+                                     height="25px" width="100%" id="uploadFrame"/>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock title="Opportunity Details">
+            <apex:pageBlockSection columns="2" collapsible="false">
+                <apex:inputField value="{!relatedOpportunity.Reasons_Lost__c}" id="requiredreasonwonlost" label="Reason Won/Lost">
+                    <apex:actionSupport event="onchange" reRender="nextButton"/>
+                </apex:inputField>
+                <apex:inputField value="{!relatedOpportunity.Competitor_Lost_To__c}" id="requiredcompetitorInfo" label="Primary Competitor Information">
+                    <apex:actionSupport event="onchange" reRender="nextButton"/>
+                </apex:inputField>
+                <apex:inputField value="{!relatedOpportunity.Sub_Reason__c}"/>
+                <apex:inputField value="{!relatedOpportunity.Other_Competitors_Won_Lost_To__c}" label="Other Competitors Won Lost To" />
+                <apex:inputField value="{!relatedOpportunity.Other_Won_Lost_Reasons__c}"/>
+                <apex:inputField value="{!relatedOpportunity.Lost_Reason_Detail__c}" label="Won/Lost Reason Detail" />
+                <apex:inputField id="stageVal" value="{!relatedOpportunity.StageName}" label="" styleClass="slds-hide" required="false" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock title="Subscription Details" id="sendBlock">
+
+            <apex:pageBlockSection columns="1" collapsible="false" rendered="{!wQuote.IsSubscription}">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Subscription Start Date"/>
+                    <c:dateField value="{!wQuote.effectiveDate}"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection columns="2" collapsible="false" rendered="{!wQuote.isAmendment || wQuote.IsRenewal}">
+                <apex:pageBlockSection title="Original Subscription" columns="1" collapsible="false">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Subscription Start Date"/>
+                        <c:dateField value="{!wQuote.subscriptionStartDate}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Subscription End Date"/>
+                        <c:dateField value="{!wQuote.subscriptionEndDate}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="New Subscription" columns="1" collapsible="false">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Subscription Start Date"/>
+                        <c:dateField value="{!wQuote.effectiveDate}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Products" columns="1" collapsible="false">
+                <c:WrikeQuoteProductsTable quoteItems="{!wQuote.items}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection columns="1" collapsible="false" rendered="{!sendResults.isNotValid}">
+                <div style="color:#DD0000">
+                    <strong>{!sendResults.result}</strong>
+                </div>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Back" action="{!back}"/>
+                <apex:commandButton id="nextButton" value="Send" disabled="{!NOT(nextAvailable)}" action="{!validateSendQuoteOperation}"
+                                    status="preloader" reRender="form" oncomplete="sendQuote()" onclick="setTimeout('this.disabled = true;', 50);"/>
+                <apex:actionFunction action="{!sendQuote}" name="sendQuote" status="preloader" reRender="sendBlock"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

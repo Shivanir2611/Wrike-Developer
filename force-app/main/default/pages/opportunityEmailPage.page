@@ -1,0 +1,5 @@
+<apex:page standardController="Opportunity" extensions="OpportunityEmailController" tabStyle="Opportunity">
+    <apex:form >
+        <c:QuoteEmail parentId="{!opportunity.Id}"  parentController="{!this}" backId="{!opportunity.Id}"/>
+    </apex:form>
+</apex:page>

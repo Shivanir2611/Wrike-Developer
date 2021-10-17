@@ -1,0 +1,182 @@
+<apex:page controller="QuotePaymentScheduleController"
+           standardStylesheets="false"
+           lightningStylesheets="true"
+           docType="html-5.0"
+           tabStyle="Quote__c">
+    <style>
+        table.invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.invoice-table th, table.invoice-table td {
+            border: 0.5pt solid black;
+            vertical-align: middle;
+            padding: 4pt 8pt 4pt 8pt;
+        }
+
+        table.invoice-table th {
+            background-color:#74B95B;
+            color:#FFFFFF;
+            white-space: nowrap;
+        }
+
+        table.invoice-table td {
+            color:#303030;
+        }
+
+        table.item-table {
+            width: 100%;
+            border-collapse: collapse;
+            border:0;
+        }
+
+        table.item-table td {
+            padding: 4pt 8pt 4pt 8pt;
+            border: 0;
+        }
+
+        table.item-table td.quantity-column {
+            width:80px;
+            text-align: center;
+        }
+    </style>
+    <apex:pageBlock title="Payment Schedule">
+        <br/>
+        <apex:outputPanel rendered="{!NOT(ISBLANK(errorMessage))}">
+            <i>{!errorMessage}</i>
+            <br/><br/>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!ISBLANK(errorMessage)}">
+            <div>Order Form {!quote.name}</div>
+            <br/>
+            <apex:outputPanel rendered="{!preview == null}">
+                <i>Payment schedule is not available. Please activate the quote first.</i>
+                <br/><br/>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!preview != null}">
+                <table class="invoice-table">
+                    <thead>
+                    <tr>
+                        <th style="width:10%">INVOICE DATE</th>
+                        <th style="width:60%">SERVICE DESCRIPTION</th>
+                        <th style="width:80px">QTY</th>
+                        <th style="width:10%">AMOUNT</th>
+                        <th style="width:10%">TOTAL</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <apex:repeat var="invoice" value="{!invoices}">
+                        <apex:outputPanel layout="none" rendered="{!NOT(invoice.recurrentItems.empty)}">
+                            <tr>
+                                <td rowspan="{!IF(invoice.oneTimeItems.empty, 1, 2)}" >
+                                    <c:dateField format="medium" value="{!IF(invoice == invoices[0], firstInvoiceDate, invoice.invoiceDate)}"/>
+                                </td>
+                                <td colspan="2">
+                                    <div>
+                                        <strong>Wrike Licenses</strong>
+                                    </div>
+                                    <table class="item-table">
+                                        <tbody>
+                                        <apex:repeat var="bundle" value="{!invoice.addedUserBundles}">
+                                            <apex:repeat var="item" value="{!bundle.items}">
+                                                <tr>
+                                                    <td>
+                                                        <c:dateRange startDate="{!item.serviceStartDate}" endDate="{!item.serviceEndDate}"/> : {!item.productName}
+                                                    </td>
+                                                    <td rowspan="{!bundle.items.size}"
+                                                        class="quantity-column"
+                                                        style="display:{!IF(item == bundle.items[0],'','none')}">
+                                                            {!bundle.quantity}
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </apex:repeat>
+                                        <apex:repeat var="item" value="{!invoice.addedRecurrentItems}">
+                                            <tr>
+                                                <td>
+                                                    <c:dateRange startDate="{!item.serviceStartDate}" endDate="{!item.serviceEndDate}"/> : {!item.productName}
+                                                </td>
+                                                <td class="quantity-column">
+                                                    {!item.quantity}
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                        <apex:repeat var="bundle" value="{!invoice.removedUserBundles}">
+                                            <apex:repeat var="item" value="{!bundle.items}">
+                                                <tr style="font-weight: bold">
+                                                    <td>
+                                                        Credited:&nbsp;<c:dateRange startDate="{!item.serviceStartDate}" endDate="{!item.serviceEndDate}"/> : {!item.productName}
+                                                    </td>
+                                                    <td rowspan="{!bundle.items.size}"
+                                                        class="quantity-column"
+                                                        style="display:{!IF(item == bundle.items[0],'','none')}">
+                                                        ({!bundle.quantity})
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </apex:repeat>
+                                        <apex:repeat var="item" value="{!invoice.removedRecurrentItems}">
+                                            <tr>
+                                                <td>
+                                                    Credited:&nbsp;<c:dateRange startDate="{!item.serviceStartDate}" endDate="{!item.serviceEndDate}"/> : {!item.productName}
+                                                </td>
+                                                <td class="quantity-column">
+                                                    ({!item.quantity})
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td>
+                                    <c:currencyField currency="{!quote.currencyCode}"
+                                                     value="{!invoice.recurrentTotal}"/>
+                                </td>
+                                <td rowspan="{!IF(invoice.oneTimeItems.empty,1, 2)}">
+                                    <c:currencyField currency="{!quote.currencyCode}"
+                                                     value="{!invoice.recurrentTotal + invoice.oneTimeTotal}"/>
+                                </td>
+                            </tr>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="none" rendered="{!NOT(invoice.oneTimeItems.empty)}">
+                            <tr>
+                                <td rowspan="1" style="display:{!IF(invoice.recurrentItems.empty,'','none')}">
+                                    <c:dateField format="medium" value="{!IF(invoice == invoices[0], firstInvoiceDate, invoice.invoiceDate)}"/>
+                                </td>
+                                <td colspan="2">
+                                    <div>
+                                        <strong>Wrike Professional Services</strong>
+                                    </div>
+                                    <table class="item-table">
+                                        <tbody>
+                                        <apex:repeat var="item" value="{!invoice.oneTimeItems}">
+                                            <tr>
+                                                <td>
+                                                    {!IF(item.productServiceType == 'Implementation', item.productRatePlanName, item.productName)}
+                                                </td>
+                                                <td class="quantity-column">
+                                                    {!item.quantity}
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td>
+                                    <c:currencyField currency="{!quote.currencyCode}"
+                                                     value="{!invoice.oneTimeTotal}"/>
+                                </td>
+                                <td style="display:{!IF(invoice.recurrentItems.empty,'','none')}">
+                                    <c:currencyField currency="{!quote.currencyCode}"
+                                                     value="{!invoice.recurrentTotal + invoice.oneTimeTotal}"/>
+                                </td>
+                            </tr>
+                        </apex:outputPanel>
+                    </apex:repeat>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:pageBlock>
+</apex:page>

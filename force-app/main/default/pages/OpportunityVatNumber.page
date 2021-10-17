@@ -1,0 +1,43 @@
+<apex:page standardController="Opportunity" extensions="OpportunityVatNumberController" tabStyle="Opportunity">
+    <c:Preloader />
+    <apex:form >
+        <apex:actionFunction name="checkPopulated" reRender="saveButton"/>
+        <apex:actionFunction name="checkVatCountry" action="{!checkVatCountry}" reRender="vatNumber, messages, saveButton"
+                             status="preloader"/>
+
+        <apex:pageBlock title="Billing Address">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Edit Billing Address" action="{!goToBillingAddressForm}"/>
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection columns="1" collapsible="false"
+                                   rendered="{!NOT(ISBLANK(contact.MailingCountryCode))}">
+                <apex:outputText value="{!billingAddress.countryFullName}" label="Billing Country"/>
+                <apex:outputText value="{!billingAddress.state}" label="State"/>
+                <apex:outputText value="{!billingAddress.city}" label="City"/>
+                <apex:outputText value="{!billingAddress.address1}" label="Address Line 1"/>
+                <apex:outputText value="{!billingAddress.address2}" label="Addreess Line 2"/>
+                <apex:outputText value="{!billingAddress.zip}" label="Zip/Postal Code"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+        <apex:pageMessages id="messages" />
+
+        <apex:pageBlock title="VAT #">
+            <apex:pageBlockSection columns="1" collapsible="false">
+                <apex:selectList size="1" value="{!billingAddress.country}" label="Billing Country" tabindex="1"
+                                 rendered="{!ISBLANK(contact.MailingCountryCode)}" onchange="checkVatCountry();">
+                    <apex:selectOptions value="{!countries}"/>
+                </apex:selectList>
+                <apex:inputText id="vatNumber" label="VAT Number" value="{!billingAddress.vatNumber}" onchange="checkPopulated();"
+                                tabindex="2" maxlength="12" disabled="{!NOT(isVatRequired)}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Cancel" action="{!cancel}"/>
+                <apex:commandButton id="saveButton" value="Submit" action="{!submit}"
+                                    disabled="{!OR(ISBLANK(billingAddress.country), ISBLANK(billingAddress.vatNumber), NOT(isVatRequired))}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,13 @@
+<apex:component >
+    <apex:attribute name="currency" type="String" required="true" description="Currency symbol"/>
+    <apex:attribute name="value" type="Decimal" required="true" description="Field value"/>
+    <apex:attribute name="rendered" type="Boolean" default="true" required="false" description="rendered"/>
+
+    <apex:variable var="sign" value="{!CASE(currency, 'USD','$', 'EUR','€', 'JPY','¥', '')}"/>
+
+    <apex:outputtext value="" rendered="{!rendered && value == null}"/>
+    <apex:outputText value="{!IF(0 > value,'-','')}{!HTMLENCODE(sign)}{0,number,###,###,##0.00}" rendered="{!rendered && value != null}">
+        <apex:param value="{!ABS(value)}" />
+    </apex:outputText>
+
+</apex:component>

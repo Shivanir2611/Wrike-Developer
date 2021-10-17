@@ -1,0 +1,15 @@
+<apex:page controller="WrikeQuoteSettingsController">
+    <c:Preloader />
+    <apex:pageBlock title="Settings" id="main">
+        <apex:pageBlockSection >
+            <apex:form >
+                <apex:commandButton action="{!updateZuoraProductCatalog}" value="Update Zuora Product Catalog"
+                                    reRender="main" status="preloader"/>
+                <apex:commandButton action="{!importProducts}" value="Import Products"
+                                    reRender="main" status="preloader"/>
+                <apex:commandButton action="{!resetProductsCache}" value="Reset Products Cache"
+                                    reRender="main" status="preloader"/>
+            </apex:form>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:page>

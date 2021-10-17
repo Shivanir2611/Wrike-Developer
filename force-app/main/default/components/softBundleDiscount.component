@@ -1,0 +1,51 @@
+<apex:component >
+    <apex:attribute name="quoteController" type="WrikeQuoteBaseController" description="WrikeQuoteBaseController" required="true"/>
+
+    <apex:outputPanel id="softBundleDiscount" styleClass="soft-bundles-discount">
+        Soft bundle pricing is applicable. Please select an option if you would like to apply it.
+        <apex:pageBlockSection columns="3">
+            <apex:pageBlockSectionItem >
+                <apex:outputPanel style="white-space: nowrap;">
+                    <apex:selectRadio value="{!quoteController.softBundleRecalculateOption}" layout="pageDirection">
+                        <apex:selectOption itemLabel="Keep Effective Price - Recalculate Discount" itemValue="1"/>
+                        <apex:selectOption itemLabel="Keep Discount - Recalculate Effective Price" itemValue="2"/>
+                        <apex:actionSupport event="onchange"
+                                            action="{!quoteController.changeSoftBundleRecalculateOption}"
+                                            reRender="softBundleDiscount"
+                                            status="preloader"/>
+                    </apex:selectRadio>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputPanel >
+                    <table class="list" style="border-collapse: collapse; background-color: #f8f8f8; border: 1px solid rgb(224, 227, 229);">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>List Price</th>
+                            <th>PPU/MONTH</th>
+                            <th>Effective Price</th>
+                            <th>Discount</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <apex:repeat value="{!quoteController.previewSoftBundleProducts}" var="product">
+                            <tr>
+                                <th>{!product.name}</th>
+                                <th><c:currencyField currency="" value="{!product.listPrice}"/></th>
+                                <th><c:currencyField currency="" value="{!product.effectivePricePerUserPerMonth}"/></th>
+                                <th><c:currencyField currency="" value="{!product.effectivePrice}"/></th>
+                                <th>{!product.discount}</th>
+                            </tr>
+                        </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:commandButton value="Apply"
+                            action="{!quoteController.recalculateSoftBundlePrice}"
+                            reRender="productsSection"
+                            status="preloader"/>
+    </apex:outputPanel>
+</apex:component>

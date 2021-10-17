@@ -1,0 +1,51 @@
+<apex:page controller="CPQDocumentPreviewController" action="{!initiatePreviewGeneration}">
+    <style>
+        body, html {width: 100%; height: 100%; margin: 0; padding: 0}
+        iframe {width: 100%; height: 100%; border: none; margin: 0; padding: 0;}
+    </style>
+    <apex:slds />
+
+    <div id="spinner" class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner--large slds-spinner--brand">
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+
+    <iframe id="pdf" allowTransparency="true" type="application/pdf"></iframe>
+
+    <apex:form >
+        <apex:actionFunction name="check" action="{!checkPreviewGenerated}" reRender="pdfBase64"/>
+    </apex:form>
+
+    <apex:outputPanel id="pdfBase64">
+        <script>
+            pdfBase64 = "{!pdfBase64}";
+        </script>
+    </apex:outputPanel>
+
+    <script>
+        let checkPreview = function() {
+            setTimeout(function() {
+                console.log("checkPreviewGenerated...");
+                check();
+                if (pdfBase64) {
+                    document.getElementById("spinner").style.display = "none";
+                    const raw = atob(pdfBase64);
+                    let pdfAsArray = new Uint8Array(new ArrayBuffer(raw.length));
+                    for (let i = 0; i < raw.length; i++) {
+                        pdfAsArray[i] = raw.charCodeAt(i);
+                    }
+                    const file = new Blob([pdfAsArray], {type: "application/pdf"});
+                    const url = URL.createObjectURL(file);
+                    const attr = document.createAttribute("src");
+                    attr.value = url;
+                    document.getElementById("pdf").setAttributeNode(attr);
+                } else {
+                    checkPreview();
+                }
+            }, 1000);
+        }
+        checkPreview();
+    </script>
+</apex:page>

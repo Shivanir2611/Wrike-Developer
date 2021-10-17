@@ -1,0 +1,66 @@
+<apex:page standardController="Subscription__c" extensions="SubscriptionContactsController">
+    <apex:pageMessages />
+    <apex:form >
+        <apex:pageBlock mode="inlineEdit">
+            <apex:pageBlockButtons >
+                <apex:commandButton id="saveButton" action="{!save}" value="Save" style="display:none"/>
+                <apex:commandButton id="cancelButton" action="{!cancel}" value="Cancel" style="display:none"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!contacts}" var="contact">
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Name" field="{!$ObjectType.Contact.Fields.Name.Name}"/>
+                    </apex:facet>
+                    <apex:outputLink value="/{!contact.Id}" target="_blank">{!contact.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Title" field="{!$ObjectType.Contact.Fields.Title.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Title}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Department" field="{!$ObjectType.Contact.Fields.Department.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Department}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Type" field="{!$ObjectType.Contact.Fields.Wrike_User_Type__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_User_Type__c}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Role" field="{!$ObjectType.Contact.Fields.Wrike_Role__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_Role__c}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Id" field="{!$ObjectType.Contact.Fields.Wrike_User_Id__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_User_Id__c}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="VOC Role" field="{!$ObjectType.Contact.Fields.VOC_Role__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputField value="{!contact.VOC_Role__c}" style="width:100%">
+                        <apex:inlineEditSupport event="ondblClick" showOnEdit="saveButton,cancelButton"/>
+                    </apex:outputField>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Do Not Survey" field="{!$ObjectType.Contact.Fields.VOC_Do_Not_Survey__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputField value="{!contact.VOC_Do_Not_Survey__c}" style="width:100%">
+                        <apex:inlineEditSupport event="ondblClick" showOnEdit="saveButton,cancelButton"/>
+                    </apex:outputField>
+                </apex:column>
+            </apex:pageBlockTable>
+            <c:pagination ctrl="{!controller}"/>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

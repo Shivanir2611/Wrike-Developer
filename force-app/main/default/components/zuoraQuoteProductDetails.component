@@ -1,0 +1,34 @@
+<apex:component >
+    <apex:attribute name="lineItem" description="Quote Product Line Item" type="QuoteBundleLineItem"/>
+    <apex:outputPanel rendered="{!lineItem.bundle}">
+        Wrike Licenses
+        <br/>
+        (as described below)
+        <br/><br/>
+        {!lineItem.billingPeriodName}<br/>
+        <apex:outputPanel rendered="{!lineItem.chargeType == ''}">
+            <c:dateRange startDate="{!lineItem.serviceStartDate}" endDate="{!lineItem.serviceEndDate}"/>
+        </apex:outputPanel>
+        <apex:outputPanel style="font-weight:bold" rendered="{!lineItem.chargeType != ''}">
+            {!lineItem.chargeType}&nbsp;&nbsp;
+            <c:dateRange startDate="{!lineItem.serviceStartDate}" endDate="{!lineItem.serviceEndDate}"/>
+        </apex:outputPanel>
+        <br/>
+        Includes:<br/>
+        <apex:repeat var="product" value="{!lineItem.items}">
+            {!product.productName}
+            <br/>
+        </apex:repeat>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!NOT(lineItem.bundle) && lineItem.items[0].recurrent}">
+        {!lineItem.items[0].productName}<br/>
+        {!lineItem.items[0].billingPeriodName}<br/>
+        <apex:outputPanel rendered="{!lineItem.chargeType == ''}">
+            <c:dateRange startDate="{!lineItem.serviceStartDate}" endDate="{!lineItem.serviceEndDate}"/>
+        </apex:outputPanel>
+        <apex:outputPanel style="font-weight:bold" rendered="{!lineItem.chargeType != ''}">
+            {!lineItem.chargeType}&nbsp;&nbsp;
+            <c:dateRange startDate="{!lineItem.serviceStartDate}" endDate="{!lineItem.serviceEndDate}"/>
+        </apex:outputPanel>
+    </apex:outputPanel>
+</apex:component>

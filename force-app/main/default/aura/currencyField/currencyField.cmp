@@ -1,0 +1,13 @@
+<aura:component>
+    <aura:attribute name="currencyCode" type="String" required="true" description="Currency code"/>
+    <aura:attribute name="value" type="Decimal" required="true" description="Field value"/>
+
+    <aura:if isTrue="{!v.value != null}">
+        {!if(0 > v.value, '-', '')}<lightning:formattedNumber
+                value="{!v.value}"
+                style="currency"
+                currencyCode="{!v.currencyCode}"
+                minimumFractionDigits="2"
+                maximumFractionDigits="2"/>
+    </aura:if>
+</aura:component>

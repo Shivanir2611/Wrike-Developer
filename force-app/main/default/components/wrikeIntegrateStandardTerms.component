@@ -1,0 +1,24 @@
+<apex:component >
+    Wrike Integrate enables customers to build workflows and integrations across business tools. Powered by the Workato
+    automation platform, customers can use Wrike Integrate to connect Wrike to 400+ cloud apps or on-premises apps, and
+    even automate actions within Wrike (i.e. a Wrike-to-Wrike integration). When purchasing Wrike Integrate Standard or
+    Wrike Integrate Enhanced, Customer is given a base monthly limit of Tasks/month that can be used to run integrations
+    with Wrike for the duration of the then-current Subscription Term. A "Task" is a usage metric that is counted every
+    time Wrike Integrate requests a piece of data from another platform/software or performs an action. A “Recipe” is an
+    automated workflow that connects apps to complete Tasks composed by Customer based on a combination of apps,
+    triggers and actions. The base monthly limit is defined by the number of licensed base subscription Users (Wrike
+    Business or Wrike Enterprise) in Customer’s Account. In the event Customer reaches their limit of included
+    Tasks/month, Customer can (1) purchase additional Task bundles via Wrike Integrate Enhanced to avoid all of its
+    Recipes being shut off until remedied (by purchasing more Task bundles or removing unused Recipes from the Account),
+    or (2) wait until the next immediate month when the Task limit starts over from zero. Wrike Integrate Standard
+    includes the following limit of Tasks/month based on the total number of licensed Users of the base subscription
+    (Wrike Business or Wrike Enterprise): up to 20,000 Tasks/month are included for 5-24 Users/month; up to 100,000
+    Tasks/month are included for 25-99 Users/month; up to 300,000 Tasks/month are included for up to 100-374
+    Users/month; and up to 750,000 Tasks/month are included for accounts with 375 or more Users/month. Wrike Integrate
+    Enhanced allows Customer to purchase additional Task bundles for the duration of the then-current Term in increments
+    of 10,000 Tasks/month. For additional information and associated features of Wrike Integrate, please refer to the
+    Wrike Integrate documentation page: https://help.wrike.com/hc/en-us/articles/360021542373-Wrike-Integrate.
+    By purchasing Wrike Integrate, Customer acknowledges that Personal Data may be transferred out of the EU
+    (if applicable) and into the US. Workato's terms of service and Workato’s privacy policy are found at
+    <a target="_blank" href="https://www.workato.com/legal/terms-of-service">https://www.workato.com/legal/terms-of-service</a>.
+</apex:component>

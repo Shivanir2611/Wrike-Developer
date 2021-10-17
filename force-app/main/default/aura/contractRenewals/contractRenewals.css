@@ -1,0 +1,10 @@
+.THIS .truncated-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+.THIS.renewal-form .slds-modal__content {
+    padding: 0 !important;
+}

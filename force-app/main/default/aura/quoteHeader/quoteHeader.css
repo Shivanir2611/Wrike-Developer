@@ -1,0 +1,41 @@
+.THIS .slds-button_last button {
+    height: 100%;
+}
+
+.THIS .box-shadow-none button {
+    box-shadow: none;
+    outline: none;
+    cursor: default;
+}
+
+.THIS .warning-icon button {
+    color: #ffb75d;
+}
+
+.THIS .warning-icon button.slds-button_icon {
+    pointer-events: auto !important;
+}
+
+.THIS .readonly {
+    pointer-events: none;
+}
+
+.THIS .field-text {
+    line-height: 21px;
+    color: rgb(8, 7, 7);
+    font-size: 14px;
+}
+
+.THIS .slds-card__body {
+    margin: 0;
+}
+
+.THIS .progress-card {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.THIS.overlay-modal .slds-modal__content {
+    padding: 0 !important;
+    overflow: initial !important;
+}

@@ -1,0 +1,50 @@
+<apex:page standardController="Opportunity" extensions="OpportunityBillingAddressController" tabStyle="Opportunity">
+    <style>
+        label[for*=":required"]::after {
+            content: "*";
+            color: #FF0000;
+            padding-left: 3px;
+            font-size: 125%;
+            font-weight:bold;
+        }
+    </style>
+    <c:Preloader />
+    <apex:form >
+        <apex:pageBlock title="Billing Address">
+            <apex:pageMessages id="messages"/>
+            <br/>
+            <i>Please populate billing address fields.</i>
+            <apex:actionFunction name="checkPopulated" action="{!null}" reRender="saveButton"/>
+            <apex:pageBlockSection columns="1" collapsible="false" id="billingAddress">
+                <apex:inputText value="{!billingAddress.firstName}" label="First Name"
+                                onchange="checkPopulated();" tabindex="1" maxlength="100" id="requiredFirstName" />
+                <apex:inputText value="{!billingAddress.lastName}" label="Last Name"
+                                onchange="checkPopulated();" tabindex="2" maxlength="100" id="requiredLastName"/>
+                <apex:inputText value="{!billingAddress.email}" label="Email" id="requiredEmail"
+                                onchange="checkPopulated();" tabindex="3" maxlength="80" style="width:350px"/>
+                <apex:selectList size="1" value="{!billingAddress.country}" label="Country" tabindex="4" id="requiredCountry">
+                    <apex:selectOptions value="{!countries}"/>
+                    <apex:actionSupport event="onchange" action="{!checkVatCountry}" reRender="billingAddress,saveButton,messages"
+                                        status="preloader"/>
+                </apex:selectList>
+                <apex:selectList size="1" value="{!billingAddress.state}" label="State" id="requiredState"
+                              tabindex="5" rendered="{!states.size > 0}" onchange="checkPopulated();">
+                    <apex:selectOptions value="{!states}"/>
+                </apex:selectList>
+                <apex:inputText value="{!billingAddress.city}" label="City"
+                                onchange="checkPopulated();" tabindex="6" maxlength="40" id="requiredCity"/>
+                <apex:inputText value="{!billingAddress.address1}" label="Address Line 1"
+                                onchange="checkPopulated();" tabindex="7" maxlength="255" id="requiredAddress1"/>
+                <apex:inputText value="{!billingAddress.address2}" label="Addreess Line 2" tabindex="8" maxlength="255"/>
+                <apex:inputText value="{!billingAddress.zip}" label="Zip/Postal Code"
+                                onchange="checkPopulated();" tabindex="9" maxlength="20" id="requiredZip"/>
+                <apex:inputText id="vatNumber" value="{!billingAddress.vatNumber}" label="VAT Number" tabindex="10" maxlength="12"
+                                rendered="{!isVatRequired}"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Back" action="{!back}"/>
+                <apex:commandButton id="saveButton" value="Save" disabled="{!NOT(populated)}" action="{!save}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

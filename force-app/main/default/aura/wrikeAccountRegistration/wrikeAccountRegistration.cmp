@@ -1,0 +1,130 @@
+<aura:component controller="CPQWrikeAccountGenerationController">
+    <aura:attribute name="quoteId" type="Id" required="true"/>
+    <aura:attribute name="email" type="String"/>
+    <aura:attribute name="outboundEmail" type="String"/>
+    <aura:attribute name="step" type="String" default="EnterEmail"/>
+    <aura:attribute name="sendInviteOptions"
+                    type="List"
+                    default="[
+                        {'label': 'Send the invite right now', 'value': 'now'},
+                        {'label': 'Do not send the invite to this user yet', 'value': 'later'}
+                    ]"/>
+    <aura:attribute name="sendInviteDecision" type="String" default="1"/>
+    <aura:attribute name="existingAccounts" type="List" default="[]"/>
+    <aura:attribute name="selectedAccount" type="Integer"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand"/>
+        </aura:if>
+
+        <aura:if isTrue="{!v.errorMessage}">
+            <div class="slds-p-horizontal--medium slds-p-top--medium">
+                <ui:message title="Error" severity="error" class="slds-m-around--none">
+                        {!v.errorMessage}
+                </ui:message>
+            </div>
+        </aura:if>
+
+        <aura:if isTrue="{!v.step == 'EnterEmail'}">
+            <div class="slds-p-around--medium" style="min-height: 108px !important;">
+                <lightning:input type="email"
+                                 aura:id="email"
+                                 label="Future Wrike Owner's Email:"
+                                 value="{!v.email}"
+                                 required="true"
+                                 style="width: 300px !important;"
+                                 pattern="[a-zA-Z0-9._|\\%#~`=?&amp;/$^*!}{+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}"
+                                 messageWhenPatternMismatch="Email format mismatch."/>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" label="Cancel" onclick="{!c.onCancel}"/>
+                <lightning:button variant="brand" label="Next" onclick="{!c.checkEmail}"/>
+            </footer>
+        </aura:if>
+        <aura:if isTrue="{!v.step == 'SelectAccount'}">
+            <header class="slds-modal__header">
+                Existing Accounts
+            </header>
+            <div>
+                <table class="slds-table slds-table--bordered slds-table--striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Owner</th>
+                            <th>Admin</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.existingAccounts}" var="accountInfo" indexVar="index">
+                            <tr>
+                                <td>
+                                    <ui:inputRadio text="{!accountInfo.id}"
+                                                   click="{!c.selectExistingAccount}"
+                                                   value="{!index == 0}"/>
+                                </td>
+                                <td>{!accountInfo.id}</td>
+                                <td>{!accountInfo.name}</td>
+                                <td><ui:outputCheckbox value="{!accountInfo.owner}"/></td>
+                                <td><ui:outputCheckbox value="{!accountInfo.admin}"/></td>
+                                <td>{!accountInfo.role}</td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </div>
+            <ui:message closable="false" severity="info" class="slds-p-around--medium">
+                For security reasons we can not register a new account on behalf of an existing Wrike user.
+                Ask the customer to create a new Wrike account first and then select that new account
+                at this step.
+            </ui:message>
+            <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" label="Back" onclick="{!c.backToEnterEmail}"/>
+                <lightning:button variant="brand" label="OK" onclick="{!c.setExistingAccountId}"/>
+            </footer>
+        </aura:if>
+        <aura:if isTrue="{!v.step == 'SendInvite'}">
+            <div class="slds-p-around--medium">
+                <lightning:radioGroup name="radioGroup"
+                                      label="Do you want to invite this user to Wrike right away or later?"
+                                      options="{!v.sendInviteOptions}"
+                                      value="{!v.sendInviteDecision}"
+                                      type="radio"/>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" label="Back" onclick="{!c.backToEnterEmail}"/>
+                <lightning:button variant="brand" label="Next" onclick="{!c.showCreationConfirmation}"/>
+            </footer>
+        </aura:if>
+        <aura:if isTrue="{!v.step == 'CreateAccount'}">
+            <div class="slds-p-around--medium">
+                <aura:if isTrue="{!v.sendInviteDecision == 'now'}">
+                    1. New Wrike account will be registered and stamped on the quote.
+                    <br/>
+                    2. The customer will get an invite from Wrike to get to the account.
+                </aura:if>
+                <aura:if isTrue="{!v.sendInviteDecision == 'later'}">
+                    1. New Wrike account will be registered and stamped on the quote. Registration email:
+                    <br/>
+                    <b>{!v.outboundEmail}</b>
+                    <br/>
+                    2. The customer will not get an invite at this point.
+                    <br/>
+                    3. In order to the customer to get an access to Wrike, owner's email in SupportApp needs to be
+                    changed from the one above to the real one.
+                </aura:if>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" label="Back" onclick="{!c.backToSendInvite}"/>
+                <lightning:button variant="brand" label="OK" onclick="{!c.createAccount}"/>
+            </footer>
+        </aura:if>
+    </div>
+</aura:component>

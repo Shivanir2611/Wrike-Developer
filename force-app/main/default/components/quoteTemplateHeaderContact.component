@@ -1,0 +1,65 @@
+<apex:component >
+    <apex:attribute name="contact" type="QS_Bill_To_Ship_To__c" description="BTST" required="true"/>
+    <table table-layout="fixed" width="100%">
+        <table-column column-width="40%"/>
+        <table-column column-width="55%"/>
+        <table-body>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Company Name:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px" font-family="Arial, Arial Unicode">
+                    <block>{!HTMLENCODE(contact.QS_Company_Name__c)}</block>
+                </table-cell>
+            </table-row>
+            <apex:outputText rendered="{!NOT(ISBLANK(contact.QS_Attention_To__c))}">
+                <table-row>
+                    <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                        <block>Contact Name:</block>
+                    </table-cell>
+                    <table-cell height="8px" text-align="left" font-size="8px" font-family="Arial, Arial Unicode">
+                        <block>{!HTMLENCODE(contact.QS_Attention_To__c)}</block>
+                    </table-cell>
+                </table-row>
+            </apex:outputText>
+            <apex:outputText rendered="{!NOT(ISBLANK(contact.QS_Email__c))}">
+                <table-row>
+                    <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                        <block>E-mail:</block>
+                    </table-cell>
+                    <table-cell height="8px" text-align="left" font-size="8px">
+                        <block>{!HTMLENCODE(contact.QS_Email__c)}</block>
+                    </table-cell>
+                </table-row>
+            </apex:outputText>
+            <table-row>
+                <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                    <block>Address:</block>
+                </table-cell>
+                <table-cell height="8px" text-align="left" font-size="8px" font-family="Arial, Arial Unicode">
+                    <block>{!HTMLENCODE(contact.QS_Street_1__c)} {!HTMLENCODE(contact.QS_Street_2__c)}</block>
+                    <block>
+                        {!contact.QS_City__c},
+                        <apex:outputText rendered="{!NOT(ISBLANK(contact.QS_State_Code__c))}">
+                            {!contact.QS_State_Code__c}
+                        </apex:outputText>
+                        <apex:outputText rendered="{!NOT(ISBLANK(contact.QS_Zip_Postal_Code__c))}">
+                            {!contact.QS_Zip_Postal_Code__c}
+                        </apex:outputText>
+                    </block>
+                    <block>{!contact.QS_Country__c}</block>
+                </table-cell>
+            </table-row>
+            <apex:outputText rendered="{!NOT(ISBLANK(contact.VATNumber__c))}">
+                <table-row>
+                    <table-cell height="8px" text-align="left" font-size="8px" font-weight="bold">
+                        <block>VAT Number:</block>
+                    </table-cell>
+                    <table-cell height="8px" text-align="left" font-size="8px">
+                        <block>{!contact.VATNumber__c}</block>
+                    </table-cell>
+                </table-row>
+            </apex:outputText>
+        </table-body>
+    </table>
+</apex:component>

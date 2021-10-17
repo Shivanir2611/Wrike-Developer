@@ -1,0 +1,175 @@
+<apex:component allowDml="true">
+    <apex:attribute name="quoteController" type="WrikeQuoteBaseController" description="WrikeQuoteBaseController" required="true"/>
+    <apex:attribute name="errorsPanel" type="String" description="errorsPanel" required="true"/>
+
+    <apex:pageBlockSection id="newProductSection" columns="1" collapsible="false" rendered="{!quoteController.newProduct != null}">
+        <apex:variable value="{!ISBLANK(quoteController.newProduct.zuoraProductRatePlanId)}" var="noRatePlan"/>
+        <apex:variable value="{!noRatePlan || quoteController.newProduct.isNotTieredPricingModels}" var="isQuantityReadOnly"/>
+        <apex:outputPanel rendered="{!quoteController.wQuote.currencyCode != 'USD'}" style="font-style:italic;font-size: 90%;">
+            <strong>
+                Due to financial compliance requirements we only support deals that are fully paid upfront in € and ¥.<br/>
+                If you need quarterly billing on annual contracts or annual billing on multi-year deals,
+                please create a new opportunity and a new quote in USD
+            </strong>
+        </apex:outputPanel>
+
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Product"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block" id="productSelect">
+                <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                <apex:actionRegion >
+                    <apex:selectList value="{!quoteController.newProduct.zuoraProductId}" size="1" >
+                        <apex:selectOptions value="{!quoteController.productOptions}" />
+                        <apex:actionSupport event="onchange" action="{!quoteController.changeProductHandler}"
+                                            reRender="newProductSection, {!errorsPanel}"
+                                            status="preloader"/>
+                    </apex:selectList>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Rate Plan"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block" id="planSelect">
+                <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                <apex:actionRegion >
+                    <apex:selectList value="{!quoteController.newProduct.zuoraProductRatePlanId}" size="1" disabled="{!ISBLANK(quoteController.newProduct.zuoraProductId)}" >
+                        <apex:selectOptions value="{!quoteController.ProductPlanOptions}" />
+                        <apex:actionSupport event="onchange" action="{!quoteController.populatePrice}"
+                                            reRender="newProductSection, {!errorsPanel}"
+                                            status="preloader"/>
+                    </apex:selectList>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem id="paidForTravel" rendered="{!quoteController.isPaidForTravelVisible}">
+            <apex:outputLabel value="Paid for travel"/>
+            <apex:inputCheckbox value="{!quoteController.wQuote.isTravelPaid}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!NOT(noRatePlan)}">
+            <apex:outputLabel value="Quantity"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block" id="quantityPanel">
+                <apex:outputPanel rendered="{!NOT(isQuantityReadOnly)}">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:actionRegion >
+                        <apex:input rendered="{!quoteController.newProduct.predefinedQuantityOptions.size == 0}"
+                                type="number"
+                                value="{!quoteController.newProduct.quantity}"
+                                html-step="1"
+                                html-min="0"
+                                style="width:100px;">
+                            <apex:actionSupport event="onchange" action="{!quoteController.changeQuantity}" status="preloader"
+                                                reRender="newProductSection, {!errorsPanel}"/>
+                        </apex:input>
+                        <apex:selectList rendered="{!quoteController.newProduct.predefinedQuantityOptions.size > 0}"
+                                         value="{!quoteController.newProduct.quantity}"
+                                         size="1">
+                            <apex:selectOptions value="{!quoteController.newProduct.predefinedQuantityOptions}"/>
+                            <apex:actionSupport event="onchange"
+                                                action="{!quoteController.populatePrice}"
+                                                status="preloader"
+                                                reRender="newProductSection, {!errorsPanel}"/>
+                        </apex:selectList>
+                    </apex:actionRegion>
+                    <apex:outputPanel layout="none" rendered="{!NOT(quoteController.wQuote.isSubscription)}">
+                        <apex:inputCheckbox id="additionalSeats" value="{!quoteController.newProduct.additionalSeats}">
+                            <apex:actionSupport event="onchange" reRender="newProductSection"/>
+                        </apex:inputCheckbox>
+                        <apex:outputLabel value=" Add additional seats on existing license" for="additionalSeats"/>
+                        &nbsp;
+                        <div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+                            <img src="/s.gif" alt="" class="infoIcon i-icon" title=""/>
+                            <div class="mouseOverInfo" style="display: none; opacity: -0.2; left: 21px;">
+                                <div class="body">
+                                    Use this checkbox when adding additional seats to an existing license
+                                    of the <strong>same base license type</strong> where you do not need to remove the existing base license.
+                                    Ex. When adding 10 Enterprise licenses to an existing 50-user Enterprise licenses.
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+                <apex:outputText value="-" rendered="{!isQuantityReadOnly}"/>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!NOT(noRatePlan)}">
+            <apex:outputLabel value="List Price ({!quoteController.newProduct.billingPeriodName})"/>
+            <apex:outputPanel >
+                <apex:outputPanel rendered="{!quoteController.newProduct.listPrice != 0}">
+                    <c:currencyField value="{!quoteController.newProduct.listPrice}"
+                                     currency="{!quoteController.wQuote.currencyCode}"/>
+                </apex:outputPanel>
+                <apex:outputText value="-" rendered="{!quoteController.newProduct.listPrice == 0}"/>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!NOT(noRatePlan)}">
+            <apex:outputLabel value="Effective Price ({!quoteController.newProduct.billingPeriodName})"/>
+            <apex:outputPanel layout="none">
+                <c:currencyField value="{!quoteController.newProduct.effectivePrice}"
+                                 currency="{!quoteController.wQuote.currencyCode}"
+                                 rendered="{!quoteController.newProduct.perUserPerMonthPriceUsage || quoteController.newProduct.isPremiumSupport}"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block" rendered="{!NOT(quoteController.newProduct.perUserPerMonthPriceUsage || quoteController.newProduct.isPremiumSupport)}">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:actionRegion >
+                        <apex:input type="number"
+                                    value="{!quoteController.newProduct.effectivePrice}"
+                                    html-step="0.01"
+                                    html-min="{!IF(quoteController.newProduct.partnerCommission,'','0')}"
+                                    style="width:100px;"
+                                    required="true">
+                            <apex:actionSupport event="onchange" action="{!quoteController.recalculateByPrice}" status="preloader"
+                                                reRender="newProductSection, {!errorsPanel}"
+                                                rendered="{!quoteController.newProduct.listPrice > 0}"/>
+                        </apex:input>
+                    </apex:actionRegion>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.newProduct.perUserPerMonthPriceUsage}">
+            <apex:outputLabel value="Price per {!quoteController.newProduct.unitName} per Month"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block" rendered="{!quoteController.newProduct.perUserPerMonthPriceUsage}">
+                <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                <apex:actionRegion >
+                    <apex:input type="number"
+                                style="width:100px;"
+                                required="true"
+                                html-step="0.01"
+                                html-min="0"
+                                value="{!quoteController.newProduct.effectivePricePerUserPerMonth}">
+                        <apex:actionSupport event="onchange" action="{!quoteController.recalculateByPrice}" status="preloader"
+                                            reRender="newProductSection, {!errorsPanel}"
+                                            rendered="{!quoteController.newProduct.listPrice > 0}"/>
+                    </apex:input>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.newProduct.listPrice != 0}">
+            <apex:outputLabel value="Discount, %"/>
+            <apex:outputPanel styleClass="requiredInput" layout="block" id="discountPanel">
+                <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                <apex:actionRegion >
+                    <apex:input type="number"
+                                style="width:100px;"
+                                value="{!quoteController.newProduct.discount}">
+                        <apex:actionSupport event="onchange" action="{!quoteController.recalculateByDiscount}" status="preloader"
+                                            reRender="newProductSection, {!errorsPanel}"/>
+                    </apex:input>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!quoteController.newProduct.discount > 0}">
+            <apex:outputLabel value="Reason For Discount"/>
+            <apex:inputTextarea value="{!quoteController.newProduct.discountReason}" html-maxlength="800"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputPanel >&nbsp;</apex:outputPanel>
+            <apex:outputPanel >
+                <apex:commandButton value="Add" action="{!quoteController.addNewProduct}"
+                                    reRender="productsSection, {!errorsPanel}, quoteState" status="preloader"/>
+                <apex:actionRegion >
+                    <apex:commandButton value="Cancel" action="{!quoteController.cancelNewProduct}" immediate="true"
+                                        reRender="productsSection" status="preloader"/>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+</apex:component>

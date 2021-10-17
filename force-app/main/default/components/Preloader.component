@@ -1,0 +1,7 @@
+<apex:component >
+    <apex:actionStatus id="preloader">
+        <apex:facet name="start">
+            <c:loadingIndicator />
+        </apex:facet>
+    </apex:actionStatus>
+</apex:component>

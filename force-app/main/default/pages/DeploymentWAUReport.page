@@ -1,0 +1,14 @@
+<apex:page standardController="Deployment__c" extensions="DeploymnentOnboardingReportController">
+    <script type='text/javascript' src='https://10az.online.tableau.com/javascripts/api/viz_v1.js'></script>
+    <div class='tableauPlaceholder' style='width: 800px; height: 400px;'>
+        <object class='tableauViz' width='800' height='400' style='display:none;'>
+            <param name='host_url' value='https%3A%2F%2F10az.online.tableau.com%2F' />
+            <param name='site_root' value='/t/wrike' />
+            <param name='name' value='self_service_report/WAU'/>
+            <param name='tabs' value='yes' />
+            <param name='toolbar' value='yes' />
+            <param name='showVizHome' value='n' />
+            <param name='filter' value='Parameters.account_id={!deployment.Wrike_Account_Id__c}' />
+        </object>
+    </div>
+</apex:page>

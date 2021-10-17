@@ -1,0 +1,9 @@
+<apex:page controller="CPQAddDeploymentsController" action="{!calculateAndAddDeployments}">
+    <apex:slds />
+    <div id="spinner" class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner--large slds-spinner--brand">
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+</apex:page>

@@ -1,0 +1,48 @@
+<apex:page standardController="Lead" extensions="LeadContactsController">
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageBlockTable value="{!contacts}" var="contact">
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Name" field="{!$ObjectType.Contact.Fields.Name.Name}"/>
+                    </apex:facet>
+                    <apex:outputLink value="/{!contact.Id}" target="_blank">{!contact.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Id" field="{!$ObjectType.Contact.Fields.Wrike_User_Id__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_User_Id__c}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Type" field="{!$ObjectType.Contact.Fields.Wrike_User_Type__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_User_Type__c}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="User Role" field="{!$ObjectType.Contact.Fields.Wrike_Role__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputLabel value="{!contact.Wrike_Role__c}"/>
+                </apex:column>
+                <apex:column headerValue="Subscription">
+                    <apex:outputLink value="/{!activeSubscriptionMap[contact.Wrike_Account_Id__c].Id}"
+                                     target="_blank">{!activeSubscriptionMap[contact.Wrike_Account_Id__c].Name}</apex:outputLink>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <c:sortingheader ctrl="{!controller}" label="Wrike Account" field="{!$ObjectType.Contact.Fields.Wrike_Account_Id__c.Name}"/>
+                    </apex:facet>
+                    <apex:outputText value="{0,number,#}">
+                        <apex:param value="{!contact.Wrike_Account_Id__c}"/>
+                    </apex:outputText>
+                </apex:column>
+                <apex:column headerValue="Wrike Profile">
+                    <a href="{!$Setup.Settings__c.Wrike_URL__c}supportapp/?user={!FLOOR(contact.Wrike_User_Id__c)}" target="_blank">Profile</a>
+                </apex:column>
+            </apex:pageBlockTable>
+            <c:pagination ctrl="{!controller}"/>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

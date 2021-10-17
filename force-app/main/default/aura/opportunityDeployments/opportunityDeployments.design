@@ -1,0 +1,6 @@
+<design:component>
+    <design:attribute name="Source" label="Source" dataSource="Internal, External"/>
+    <sfdc:objects>
+        <sfdc:object>Deployment__c</sfdc:object>
+    </sfdc:objects>	
+</design:component>

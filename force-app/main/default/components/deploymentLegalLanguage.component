@@ -1,0 +1,53 @@
+<apex:component >
+    <apex:attribute name="ctrl" type="WrikeQuotePdfTemplateController" required="true" description="Parent page controller"/>
+    <apex:variable var="noExhibit" value="{!ctrl.deploymentLanguageData.exhibits == ''}"/>
+    <apex:variable var="custom" value="{!ctrl.deploymentLanguageData.custom}"/>
+    <apex:variable var="pilot" value="{!ctrl.deploymentLanguageData.pilot}"/>
+    <apex:outputPanel layout="none" rendered="{!noExhibit}">
+        <apex:outputPanel layout="none" rendered="{!NOT(custom)}">
+            If Customer has purchased Professional Services
+            as indicated by this Order Form, its Statement of Work can be found at
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-b/">https://www.wrike.com/professional-services/exhibit-b/</a>
+            (for Deployment services) or
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-c/">https://www.wrike.com/professional-services/exhibit-c/</a>
+            (for Wrike Integrate) or a separate SOW signed between Parties, which ever is applicable.
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!custom}">
+            Customer has purchased Professional Services as indicated by this Order Form.
+            The details of said services are outlined in a separate Statement of Work signed between Parties (for Custom services).
+        </apex:outputPanel>
+    </apex:outputPanel>
+    <apex:outputPanel layout="none" rendered="{!NOT(noExhibit)}">
+        <apex:variable var="exhibitB" value="{!CONTAINS(ctrl.deploymentLanguageData.exhibits, 'B') == true}"/>
+        <apex:variable var="exhibitC" value="{!CONTAINS(ctrl.deploymentLanguageData.exhibits, 'C') == true}"/>
+        <apex:variable var="exhibitD" value="{!CONTAINS(ctrl.deploymentLanguageData.exhibits, 'D') == true}"/>
+        <apex:variable var="exhibitE" value="{!CONTAINS(ctrl.deploymentLanguageData.exhibits, 'E') == true}"/>
+        Customer has purchased Professional Services as indicated by this Order Form.
+        The details of said services are outlined at
+        <apex:outputPanel layout="none" rendered="{!exhibitB}">
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-b/">https://www.wrike.com/professional-services/exhibit-b/</a>
+            (for Deployment)
+            <apex:outputText value=", " rendered="{!exhibitC || exhibitD || custom}"/>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!exhibitC}">
+            <apex:outputText value="and " rendered="{!exhibitB && NOT(exhibitD || custom)}"/>
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-c/">https://www.wrike.com/professional-services/exhibit-c/</a>
+            (for Wrike Integrate)
+            <apex:outputText value=", " rendered="{!exhibitD || custom}"/>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!exhibitD}">
+            <apex:outputText value="and " rendered="{!(exhibitB || exhibitC) && NOT(custom)}"/>
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-d/">https://www.wrike.com/professional-services/exhibit-d/</a>
+            (for the applicable Enhanced Package Add-On)
+            <apex:outputText value=", " rendered="{!custom || pilot}"/>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!exhibitE}">
+            <a target="_blank" href="https://www.wrike.com/professional-services/exhibit-e/">https://www.wrike.com/professional-services/exhibit-e/</a>
+            (for Self-led Deployment)
+        </apex:outputPanel>
+        <apex:outputText value="whichever is applicable{!IF(custom, ', ', '')}" rendered="{!pilot}"/>
+        <apex:outputPanel layout="none" rendered="{!custom}">
+            and in a separate Statement of Work signed between Parties (for Custom services)
+        </apex:outputPanel>.
+    </apex:outputPanel>
+</apex:component>

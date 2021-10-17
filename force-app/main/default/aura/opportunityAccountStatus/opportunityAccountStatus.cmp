@@ -1,0 +1,95 @@
+<aura:component controller="CPQOpportunityAccountStatusController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="contracts" type="Contract[]"/>
+    <aura:attribute name="subscriptionProducts" type="List"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="currencyCode" type="String"/>
+    <aura:attribute name="displayRenewalPrice" type="Boolean"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <article class="slds-card">
+        <div class="slds-page-header slds-grid">
+            <header slot="title" class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning:icon iconName="standard:product_required" size="small" alternativeText="New Wrike Quote"/>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title" style="font-weight:700;">
+                        <span>Current Account Status</span>
+                    </h2>
+                </div>
+            </header>
+        </div>
+        <div class="slds-card__body slds-border_top slds-m-top--none slds-m-bottom--none slds-p-bottom--small">
+            <aura:if isTrue="{!not(empty(v.errorMessage))}">
+                <ui:message severity="error" class="slds-m-around--small">
+                        {!v.errorMessage}
+                </ui:message>
+            </aura:if>
+            <aura:if isTrue="{!not(empty(v.subscriptionProducts))}">
+                <table class="slds-table slds-table--bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th style="white-space: normal">Avg Effective Price</th>
+                            <aura:if isTrue="{!v.displayRenewalPrice}">
+                                <th style="white-space: normal">Avg Renewal Price</th>
+                            </aura:if>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.subscriptionProducts}" var="product" indexVar="index">
+                            <tr>
+                                <td>{!product.name}</td>
+                                <td>{!if(product.quantity == null, '-', product.quantity)}</td>
+                                <td><lightning:formattedNumber value="{!product.avgEffectivePrice}"
+                                                               currencyCode="{!v.currencyCode}"
+                                                               style="currency"
+                                                               currencyDisplayAs="symbol"/></td>
+                                <aura:if isTrue="{!v.displayRenewalPrice}">
+                                    <td>
+                                        <aura:if isTrue="{!product.avgEffectivePrice != product.avgRenewalPrice}">
+                                            <lightning:formattedNumber value="{!product.avgRenewalPrice}"
+                                                                           currencyCode="{!v.currencyCode}"
+                                                                           style="currency"
+                                                                           currencyDisplayAs="symbol"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!product.avgEffectivePrice == product.avgRenewalPrice}">
+                                            same
+                                        </aura:if>
+                                    </td>
+                                </aura:if>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </aura:if>
+            <aura:if isTrue="{!not(empty(v.contracts))}">
+                <p class="slds-m-horizontal--x-small slds-m-top--medium slds-m-bottom--xx-small"><b>Active Contracts:</b></p>
+                <table class="slds-table slds-table--bordered">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Billing Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.contracts}" var="contract" indexVar="index">
+                            <tr>
+                                <td>
+                                    <a href="{!'/lightning/r/Contract/'+ contract.Id + '/view'}">{!contract.ContractNumber}</a>
+                                </td>
+                                <td>{!contract.StartDate}</td>
+                                <td>{!contract.EndDate}</td>
+                                <td>{!contract.BillingFrequency__c}</td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </aura:if>
+        </div>
+    </article>
+</aura:component>

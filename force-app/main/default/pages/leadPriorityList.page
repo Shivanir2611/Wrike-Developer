@@ -1,0 +1,23 @@
+<apex:page tabStyle="Lead">
+    <apex:includeScript value="{!$Resource.jQuery310}"/>
+    <apex:enhancedList type="Lead" height="600" rowsPerPage="100" id="priority-list" listId="00B2A000008rdT3" customizable="false" />
+    <script>
+        $(document).ready(function() {
+            var refresh = function() {
+                $('input[id$="priority-list_refresh"]').click();
+            }
+            var refreshInterval;
+            var resetInterval = function() {
+                clearInterval(refreshInterval);
+                refreshInterval = setInterval(refresh, 60000);
+            }
+            resetInterval();
+            $(document).click(function() {
+                resetInterval();
+            });
+            $(document).keypress(function() {
+                resetInterval();
+            });   
+        });
+    </script>
+</apex:page>

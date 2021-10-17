@@ -1,0 +1,155 @@
+<apex:page controller="WrikeSubscriptionQuoteController" standardStylesheets="false" lightningStylesheets="true" docType="html-5.0" tabStyle="Quote__c">
+    <apex:stylesheet value="{!$Resource.validationStyles}"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.theme.min.css')}"/>
+
+    <apex:includeScript value="{!$Resource.jQuery310}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryUi1120, 'jquery-ui-1.12.0.custom/jquery-ui.min.js')}"/>
+
+    <style>
+        textarea {
+            width: 350px;
+            height: 50px;
+            resize: none;
+        }
+        .quoteInput {
+            width: 350px;
+        }
+        select {
+            width: 200px;
+        }
+        ul.date-constraints {
+            padding: 0px;
+            margin-left: 0px;
+            margin-top: 0px;
+            font-size: 12px
+        }
+        .date-constraints li {
+            padding-top: 5px;
+        }
+        .soft-bundles-discount .detailList th, .soft-bundles-discount .detailList td {
+            vertical-align: middle !important;
+        }
+    </style>
+    <script>
+        $(document).on("keypress", ":input:not(textarea)", function(event) {
+            //:not([type=submit])
+            if (event.keyCode == 13) {
+                event.preventDefault();
+            }
+        });
+    </script>
+
+    <c:Preloader />
+    <apex:form id="mainForm">
+        <c:ConfirmationDialog handler="{!saveQuoteDetails}" dialogId="dialog-confirm" rerender="mainForm" status="preloader"
+                              message="Term was changed. Existing products will be removed. Are you sure?"
+                              rendered="{!IsSaveQuoteDetailsVisible && IsNeedResetProductState}"/>
+
+        <apex:pageBlock rendered="{!step == QuoteDetailsStepName}" mode="detail">
+            <apex:pageBlockButtons id="topButtons" rendered="{!validationResults.HasNotFatalErrors}">
+                <apex:commandButton value="Back" action="{!previous}" immediate="true" html-formnovalidate="formnovalidate"/>
+                <apex:commandButton value="Next" action="{!next}" reRender="mainForm" status="preloader"
+                                    disabled="{!validationResults.HasFatalErrors}" rendered="{!NOT(IsSaveQuoteDetailsVisible)}"/>
+                <apex:commandButton value="Save" action="{!saveQuoteDetails}" reRender="mainForm" status="preloader"
+                                    disabled="{!validationResults.HasFatalErrors}" rendered="{!IsSaveQuoteDetailsVisible && NOT(IsNeedResetProductState)}"/>
+                <apex:outputpanel rendered="{!IsSaveQuoteDetailsVisible && IsNeedResetProductState}">
+                    <input type="button" value="Save" class="btn" onclick="showDialog();"/>
+                </apex:outputpanel>
+            </apex:pageBlockButtons>
+
+            <apex:outputPanel id="step2Erros">
+                <apex:outputPanel rendered="{!validationResults.isNotValid}" layout="block"
+                                  styleClass="validation-message {!IF(validationResults.IsWarn, 'warning', 'error')}">
+                    {!validationResults.result}
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <!-- Insert twistSection script -->
+            <apex:pageBlockSection rendered="false"/>
+
+            <c:QuoteEditDetailsSection quoteController="{!Instance}" messageSection="step2Erros"/>
+        </apex:pageBlock>
+
+        <apex:pageBlock id="productsSection" title="Products" rendered="{!step == ProductsTableStepName}">
+
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Back" action="{!previous}" reRender="mainForm" status="preloader"/>
+                <apex:commandButton value="Save" action="{!saveQuote}" reRender="mainForm, step3Errors"
+                                    status="preloader" disabled="{!newProduct != null}"/>
+            </apex:pageBlockButtons>
+
+            <apex:outputPanel id="step3Errors">
+                <apex:outputPanel rendered="{!validationResults.isNotValid}"
+                                  styleClass="validation-message {!IF(validationResults.IsWarn, 'warning', 'error')}" layout="block">
+                    {!validationResults.result}
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <c:QuoteViewDetailsSection wQuote="{!wQuote}"/>
+
+            <c:AddNewProductSection quoteController="{!Instance}" errorsPanel="step3Errors"/>
+
+            <apex:outputPanel id="quoteState">
+                <apex:outputPanel rendered="{!wQuote.isChanged}" styleClass="validation-message warning" layout="block"
+                                  style="margin-bottom: 0px; margin-left: 10px;">
+                    Quote is not saved.&nbsp;
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!needRecalculateSoftBundleDiscount}"
+                                  styleClass="validation-message"
+                                  layout="block"
+                                  style="background-color: rgb(242, 243, 243); border: 1px solid rgb(224, 227, 229); margin-bottom: 0px; margin-left: 10px;">
+                    <c:softBundleDiscount quoteController="{!Instance}"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:pageBlockSection columns="1">
+                <apex:commandButton value="Add product" action="{!showNewProductSection}"
+                                    reRender="productsSection"
+                                    status="preloader" rendered="{!newProduct == null}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection id="productTable" columns="1" collapsible="false">
+                <c:WrikeQuoteProductsTable quoteItems="{!wQuote.nonImplementationItems}" renderedActionColumn="true">
+                    <apex:outputPanel rendered="{!quoteItem.isAdded}">
+                        <apex:commandLink action="{!editProduct}" value="Edit"
+                                          reRender="productsSection, step3Errors, quoteState" status="preloader">
+                            <apex:param name="editItemUID" assignTo="{!editItemUID}" value="{!quoteItem.UID}" />
+                            <apex:param name="deploymentsAdding" value="false" assignTo="{!deploymentsAdding}"/>
+                        </apex:commandLink>
+                        &nbsp;|&nbsp;
+                    </apex:outputPanel>
+                    <apex:commandLink action="{!removeProduct}" value="Remove" rendered="{!quoteItem.isExisting || quoteItem.isAdded}"
+                                      reRender="productsSection, step3Errors, quoteState" status="preloader">
+                        <apex:param name="deleteItemUID" assignTo="{!deleteItemUID}" value="{!quoteItem.UID}"/>
+                    </apex:commandLink>
+                </c:WrikeQuoteProductsTable>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection columns="1">
+                <apex:commandButton value="Add deployment" action="{!showNewDeploymentSection}"
+                                    reRender="productsSection"
+                                    status="preloader" rendered="{!newProduct == null}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection id="deploymentTable" columns="1" collapsible="false">
+                <c:WrikeQuoteProductsTable quoteItems="{!wQuote.implementationItems}" renderedActionColumn="true">
+                    <apex:variable var="itemUID" value="{!quoteItem.UID}"/>
+                    <apex:outputPanel rendered="{!quoteItem.isAdded}">
+                        <apex:commandLink action="{!editProduct}" value="Edit"
+                                          reRender="productsSection, step3Errors, quoteState" status="preloader">
+                            <apex:param name="editItemUID" assignTo="{!editItemUID}" value="{!quoteItem.UID}" />
+                            <apex:param name="deploymentsAdding" value="true" assignTo="{!deploymentsAdding}"/>
+                        </apex:commandLink>
+                        &nbsp;|&nbsp;
+                    </apex:outputPanel>
+                    <apex:commandLink action="{!removeProduct}" value="Remove" rendered="{!quoteItem.isExisting || quoteItem.isAdded}"
+                                      reRender="productsSection, step3Errors, quoteState" status="preloader">
+                        <apex:param name="deleteItemUID" assignTo="{!deleteItemUID}" value="{!quoteItem.UID}" />
+                    </apex:commandLink>
+                </c:WrikeQuoteProductsTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

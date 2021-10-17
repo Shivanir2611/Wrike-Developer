@@ -1,0 +1,15 @@
+.THIS .custom-disabled {
+    background: rgb(201, 199, 197);
+    border-color: rgb(201, 199, 197);
+    color: rgb(255, 255, 255);
+    box-shadow: none;
+}
+
+.THIS .box-shadow-none button {
+    box-shadow: none;
+    outline: none;
+}
+
+.THIS .slds-card__header {
+    height: 45px;
+}

@@ -1,0 +1,13 @@
+<aura:component controller ="WrikeDeploymentShareLogic" implements="force:lightningQuickAction,force:hasRecordId" >
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="Mode" type="List" default="['Current Deployment Record', 'Batch']"/>
+    <aura:attribute name="SelectedMode" type="String"/>
+    <lightning:select aura:id="modelevel" required="true" name="Mode" label="Select which records to be given access" value="{!v.SelectedMode}">
+        <aura:iteration var="option" items="{! v.Mode }">
+            <option value="{!option}">{!option}</option>
+        </aura:iteration>
+    </lightning:select>
+    <div class="slds-p-around_xx-small">
+        <lightning:button label="Run" onclick="{!c.executeMode}" variant="brand"/>
+    </div>
+</aura:component>

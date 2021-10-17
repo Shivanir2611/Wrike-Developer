@@ -1,0 +1,18 @@
+<apex:component >
+    <div class="chart-legend">
+        <div class="legend-row">
+            <div class="legend-cell"></div>
+            <div class="legend-cell yellow-cell"></div>
+            <div class="legend-cell txt">Current</div>
+        </div>
+        <div class="legend-row">
+            <div class="legend-cell"></div>
+            <div class="legend-cell green-cell"></div>
+            <div class="legend-cell txt">New</div></div>
+        <div class="legend-row">
+            <div class="legend-cell"></div>
+            <div class="legend-cell"></div>
+            <div class="legend-cell"></div>
+        </div>
+    </div>
+</apex:component>

@@ -1,0 +1,438 @@
+<apex:page controller="QuoteTemplateTermsAndConditionsContr" showHeader="false" sidebar="false" cache="false" contentType="text/xml" action="{!getTermsAndConditions}" >
+    <block>
+        <apex:outputText rendered="{!needRenderSection}">
+            <block>
+                <block border-after-width="1px">
+                    <block margin-bottom="15px">
+                        <table table-layout="fixed" width="100%" >
+                            <table-body>             
+                                <table-row>
+                                    <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px" >
+                                        <block margin-left="10px" margin-top="2px" font-weight="bold" >TERMS AND CONDITIONS</block>
+                                    </table-cell>
+                                </table-row>
+                            </table-body>
+                        </table>
+                    </block>
+                </block>
+            </block>
+            <block>
+                <block border-after-width="1px" margin-top="10px">
+                    <block margin-bottom="15px">
+                        <apex:variable value="{!0}" var="pointNumber"/>
+                        <table table-layout="fixed" width="100%" >
+                            <table-column column-width="5%"/>
+                            <table-column column-width="5%"/>
+                            <table-column column-width="90%"/>
+                            <table-body>
+                                <apex:outputText rendered="{!NOT(quoteTotalIsNegative)}">
+                                    <apex:outputText rendered="{!IF(isGoverningTermsExist, true, false)}">
+                                        <table-row >
+                                            <table-cell font-weight="bold" font-size="10px" text-align="left"><block>A.</block></table-cell>
+                                            <table-cell number-columns-spanned="{!IF(OR(cbAdditionOfCoMarketing, isGoverningTermsExist, purchasingByPO), 2, 0)}" font-weight="bold" font-size="10px"><block>{!IF(OR(cbAdditionOfCoMarketing, isGoverningTermsExist, purchasingByPO),'Governing Terms:' ,'')}</block></table-cell>
+                                        </table-row>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!or(isGoverningTermsExist, purchasingByPO)}">
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell number-columns-spanned="2" font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block>
+                                                    <apex:outputText rendered="{!NOT(hasReseller)}">
+                                                            {!IF(governingTerms=='Online T&C', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the online Terms & Conditions found at https://learn.wrike.com/enterprise-wmsa/ (“Terms & Conditions”) (together, “Agreement”), provided that in the event of a conflict between this Order Form and the Terms & Conditions take place, this Order Form will take precedence and prevail as to the conflict.'),
+                                                            IF(governingTerms=='Existing MSA', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the '+dateOfAgreement+' separate Master Subscription & Services Agreement/SaaS Subscription Agreement signed between Parties (“MSA”) (together, “Agreement”), provided that in the event of a conflict between this Order Form and the MSA take place, this Order Form will take precedence and prevail as to the conflict.'),
+                                                            IF(governingTerms=='POC with Online T&C', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the online Terms & Conditions found at https://learn.wrike.com/enterprise-wmsa/ (“Terms & Conditions”) (together, “Agreement”), provided that in the event of a conflict between this Order Form and the Terms & Conditions take place, this Order Form will take precedence and prevail as to the conflict.'),
+                                                            IF(governingTerms=='Custom Pilot', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the '+dateOfAgreement+' Pilot Agreement signed between Parties (“Pilot Agreement”) (together, “Agreement”), provided that in the event of a conflict between this Order Form and the Pilot Agreement take place, this Order Form will take precedence and prevail as to the conflict.'),
+                                                            IF(governingTerms=='E-commerce ToS', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the online Terms of Service found at https://www.wrike.com/security/terms/ (“Terms of Service”), provided that in the event of a conflict between this Order Form and the Terms of Service take place, this Order Form will take precedence and prevail as to the conflict. '),
+                                                            IF(governingTerms=='New MSA', HTMLENCODE('This Order Form is for the Wrike products and services outlined herein and is governed by the Terms and Conditions located at https://learn.wrike.com/enterprise-wmsa/ (“Terms and Conditions”) unless a separate Master Subscription & Services Agreement is signed between Parties on or before the Effective Date of this Order Form (“MSA”) (the Order Form and its governing terms together are defined as the “Agreement”). In the event of a conflict between this Order Form and the Governing Terms take place, this Order Form will take precedence and prevail as to the conflict.'),
+                                                            IF(governingTerms == 'Custom Terms' || governingTerms == 'Partner Agreement', customGoverningTerms, '')))))))}
+                                                    </apex:outputText>
+                                                    <apex:outputText rendered="{!hasReseller}">
+                                                        {!customGoverningTerms}
+                                                    </apex:outputText>
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!purchasingByPO}">
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell number-columns-spanned="2" font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block>
+                                                    <block font-weight="bold">Purchase Order:</block>
+                                                    Both Parties acknowledge and agree that
+                                                    Customer has requested that this Order Form be processed via
+                                                    Customer’s Purchase Order (versus by Customer’s signature below).
+                                                    The Order Form contract identifier for such Purchase Order shall
+                                                    be the Order Form Number referenced above and the terms of this
+                                                    Order Form are incorporated therein. This Order Form shall be
+                                                    effective as indicated above (“Order Form Effective Date”),
+                                                    regardless of the dates listed in the Purchase Order. Both Parties
+                                                    acknowledge and agree that no terms or conditions set forth on
+                                                    Customer’s purchase
+                                                    order or preprinted form or document shall add to or vary the terms
+                                                    and conditions of this Order Form or the Agreement, and all such
+                                                    terms or conditions shall be null and void. For good and valuable
+                                                    consideration, the receipt and sufficiency of which are hereby
+                                                    acknowledged, Wrike agrees to the terms outlined herein by offering
+                                                    this Order Form to Customer if Customer accepts the terms of this
+                                                    Order Form by issuing a Purchase Order to Wrike.
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!hasReseller}">
+                                        <table-row>
+                                            <table-cell font-weight="bold" font-size="10px" text-align="left" padding-top="10pt"><block>{!IF(isGoverningTermsExist, 'B.', 'A.')}</block></table-cell>
+                                            <table-cell number-columns-spanned="2" font-weight="bold" font-size="10px" padding-top="10pt"><block>Pass-Through Terms:</block></table-cell>
+                                        </table-row>
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                <block>1.</block>
+                                            </table-cell>
+                                            <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block font-weight="bold">
+                                                    EULA:
+                                                </block>
+                                                <apex:outputText rendered="{!partnerAgreementType != 'Local Agent'}">
+                                                    <block>Partner represents, warrants and covenants that the End Customer has duly authorized the above purchase and has accepted the End User License Agreement as outlined in Exhibit A of the Agreement (https://www.wrike.com/security/terms/), as required by the Agreement.</block>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!partnerAgreementType == 'Local Agent'}">
+                                                    <block>Both Parties acknowledge and agree that End Customer is an End Customer of Partner and Partner represents, warrants and covenants that it shall pass through the Wrike's then-current End User License Agreement (https://www.wrike.com/security/terms) to End Customer.</block>
+                                                </apex:outputText>
+                                            </table-cell>
+                                        </table-row>
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                <block>2.</block>
+                                            </table-cell>
+                                            <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block font-weight="bold">
+                                                    Other:
+                                                </block>
+                                                <block>Reseller represents, warrants and covenants that it shall pass through the following terms to Customer (if applicable):</block>
+                                            </table-cell>
+                                        </table-row>
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell font-size="8px" text-align="justify" padding-top="3pt">
+                                                <block font-weight="bold">
+                                                    a. Wrike Subscription(s):
+                                                </block>
+                                                <block margin-left="9pt">
+                                                    Wrike is a cloud-based project management and collaboration software. The purchased Subscription(s) are outlined above and further defined at {!if(quote.legacyBasePlansAllowed, 'https://learn.wrike.com/enterprise-wproducts/', 'https://learn.wrike.com/enterprise-products/')}.
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                        <apex:outputText rendered="{!IF(cbAdditionOfProfessionalServices, true, false)}">
+                                            <table-row>
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="3pt">
+                                                    <block font-weight="bold">
+                                                        b. Professional Service(s):
+                                                    </block>
+                                                    <block margin-left="9pt">
+                                                        Customer has purchased Professional Services as indicated by this Order Form. The details of said services are outlined
+                                                        <apex:outputText rendered="{!quote.legacyBasePlansAllowed}">
+                                                            at {!IF(productFamilyDeployment,'https://www.wrike.com/professional-services/exhibit-b/','')}{!IF(productFamilyDeployment == FALSE,'', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == FALSE, productFamilyAddOn == FALSE), ' and ', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == FALSE), ' and ', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE),', ',''))))}{!IF(productFamilyIntegrate,'https://www.wrike.com/professional-services/exhibit-c/','')}{!IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE), ' and ',IF(AND(productFamilyDeployment == FALSE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE), ' and ',IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == FALSE, productFamilyAddOn == TRUE), ' and ','')))}{!IF(productFamilyAddOn, 'https://www.wrike.com/professional-services/exhibit-d/','')}
+                                                        </apex:outputText>
+                                                        <apex:outputText rendered="{!not(quote.legacyBasePlansAllowed)}">
+                                                            in the applicable package description listed at https://www.wrike.com/professional-services-offering
+                                                        </apex:outputText>
+                                                        or a separate SOW signed between Parties, which ever is applicable.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                    </apex:outputText>
+                                    <table-row>
+                                        <table-cell font-weight="bold" font-size="10px" text-align="left" padding-top="10pt"><block>{!IF(isGoverningTermsExist, IF(hasReseller,'C.','B.'), IF(hasReseller,'B.','A.'))}</block></table-cell>
+                                        <table-cell number-columns-spanned="2" font-weight="bold" font-size="10px" padding-top="10pt"><block>Additional Terms:</block></table-cell>
+                                    </table-row>
+                                    <apex:outputText rendered="{!NOT(hasReseller)}">
+                                        <table-row>
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                <block>
+                                                    <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                    {!pointNumber}.
+                                                </block>
+                                            </table-cell>
+                                            <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block font-weight="bold">
+                                                    Wrike Subscription(s):
+                                                </block>
+                                                <block>
+                                                    Wrike is a cloud-based project management and collaboration software. The purchased Subscription(s) are outlined above and further defined at {!if(quote.legacyBasePlansAllowed, 'https://learn.wrike.com/enterprise-wproducts/', 'https://learn.wrike.com/enterprise-products/')}.
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                        <apex:outputText rendered="{!IF(cbAdditionOfProfessionalServices, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <!--<table-cell padding-top="10pt"><block></block></table-cell>-->
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                        {!pointNumber}.
+                                                    </block></table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Professional Service(s):
+                                                    </block>
+                                                    <block>
+                                                        Customer has purchased Professional Services as indicated by this Order Form. The details of said services are outlined
+                                                        <apex:outputText rendered="{!quote.legacyBasePlansAllowed}">
+                                                            at {!IF(productFamilyDeployment,'https://www.wrike.com/professional-services/exhibit-b/','')}{!IF(productFamilyDeployment == FALSE,'', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == FALSE, productFamilyAddOn == FALSE), ' and ', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == FALSE), ' and ', IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE),', ',''))))}{!IF(productFamilyIntegrate,'https://www.wrike.com/professional-services/exhibit-c/','')}{!IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE), ' and ',IF(AND(productFamilyDeployment == FALSE, productFamilyIntegrate == TRUE, productFamilyAddOn == TRUE), ' and ',IF(AND(productFamilyDeployment == TRUE, productFamilyIntegrate == FALSE, productFamilyAddOn == TRUE), ' and ','')))}{!IF(productFamilyAddOn, 'https://www.wrike.com/professional-services/exhibit-d/','')}
+                                                        </apex:outputText>
+                                                        <apex:outputText rendered="{!not(quote.legacyBasePlansAllowed)}">
+                                                            in the applicable package description listed at https://www.wrike.com/professional-services-offering
+                                                        </apex:outputText>
+                                                        or a separate SOW signed between Parties, which ever is applicable.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!IF(cbRemovalofAutomaticRenewal, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block></table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Renewal Term(s):
+                                                    </block>
+                                                    <block>
+                                                        This Order Form will not automatically renew. For Services to continue past the last date of the Subscription above, a separate Order Form signed between Parties is required.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                    <apex:outputText rendered="{!NOT(hasReseller)}">
+                                        <apex:outputText rendered="{!IF(DisplayAdditionalUsersPricePerMonth, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block>
+                                                </table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Additional Users:
+                                                    </block>
+                                                    <block>
+                                                        During the Subscription Term, Customer may purchase additional Users for the same above-referenced User-based subscription(s)
+                                                        in increments of {!additionalUsersIncrements} Users at the rate of {!quoteCurrency} {!additionalUsersPrice} User/month,
+                                                        pro-rated for the remainder of the Subscription Term. Any increase in the committed volume of Users shall be for the remainder
+                                                        of the Subscription Term regardless of usage and the committed volume of Users may not be reduced during the Subscription Term.
+                                                        The bundled and discounted rate for additional Users applies to the above-referenced User-based subscription(s)
+                                                        (e.g., where "User" is the increment/quantity for the applicable subscription) and does not include the costs
+                                                        associated with any additional subscription(s) not referenced above or in different units of measure
+                                                        which shall be purchased at a separate rate if/when applicable (e.g., like Collaborators, Storage, Tasks, or Premium Support).
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(DisplayAdditionalCollabPricePerMonth, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block>
+                                                </table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Additional Collaborators:
+                                                    </block>
+                                                    <block>
+                                                        At no charge, Customer has access to the greater of twenty (20) Collaborators or 15% of the total number of Users in the above Wrike ID for the then-current Term. Additional licenses for Collaborators purchased in this Order Form, if any, are mentioned above. During the Subscription Term, Customer may purchase additional Collaborators in increments of {!additionalCollabIncrements} Collaborators at the rate of {!quoteCurrency} {!additionalCollabPrice} Collaborator/month, pro-rated for the remainder of the Subscription Term. Any increase in the committed volume of Collaborators shall be for the remainder of the Subscription Term regardless of usage and the committed volume of Collaborators may not be reduced during the Subscription Term.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(cbPriceProtectionatRenewal, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block>
+                                                </table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Price Protection:
+                                                    </block>
+                                                    <block>
+                                                        Wrike may increase the Fees due under Order Forms for the applicable Renewal Term (if any) by providing notice to Customer of such increase at least sixty (60) days before the commencement of the upcoming Renewal Term, provided that the per-unit Subscription Fees shall be increased by no more than {!priceProtectionAtRenewal}.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(cbRemovalofPublicityLogoRights, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+
+                                                    </block></table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Publicity:
+                                                    </block>
+                                                    <block>
+                                                        Both Parties acknowledge and agree that Publicity of the Governing Terms is updated as follows. “Neither Party may reference the name and logo of the other Party in its public marketing lists of customers or vendors without the prior written consent of the other Party, which may be withheld or withdrawn by the other Party for any or no reason.”
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(cbAdditionOfCoMarketing, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block>
+                                                </table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Co-Marketing Discount:
+                                                    </block>
+                                                    <block >
+                                                        In exchange for the special incentive pricing above, Customer agrees to use good-faith efforts to participate in Wrike’s Co-Marketing Program, in which Customer agrees to participate in jointly with Wrike and Wrike agrees to pay any and all production costs (if any). Wrike’s Co-Marketing Program include co-marketing and promotional activities like Wrike’s use of Customer’s name and logo on Wrike’s website and marketing materials, Customer providing a quotation or testimonial for Wrike’s use, and/or Customer contributing to a Wrike blog post, industry webinar, published case study, and/or joint press release. Wrike hereby grants Customer the right to use and distribute any and all of the foregoing co-marketing and promotional elements, provided Customer pays for its own applicable distribution fees (if any). Customer hereby permits Wrike to include Customer’s name and logo as a Wrike customer on Wrike’ website and other marketing and financial reporting materials; provided, however, that Customer retains sole and exclusive ownership of Customer’s name, logo and other trademarks.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(cbGoverningTerms, true, false)}">
+                                            <table-row>
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block>
+                                                </table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        Governing Law/Venue:
+                                                    </block>
+                                                    <block>
+                                                        Both Parties acknowledge and agree that Governing Law/Venue of the Governing Terms is updated as follows. “Any disputes arising out of or related hereto shall be governed by and construed in accordance with the laws of {!governingLaw} , without giving effect to its conflicts of laws rules, the United Nations Convention on the International Sale of Goods, or the Uniform Computer Information Transactions Act. Any dispute, controversy or claim arising related to this Agreement, shall be finally determined by arbitration conducted by the Judicial Arbiter Group (or, if unavailable, then such other similar group that can provide former judges as arbiters) in accordance with the Rules of Arbitration of the International Chamber of Commerce applicable to commercial disputes by a single arbiter who is (a) fluent in written and spoken English, the language governing this Agreement, and (b) skilled and experienced with cloud or internet services. The place of such arbitration shall be where the principal place of business is of that who is defending the claim or who is the defendant in the action. The judgment of the arbitrator shall be final, non-appealable (to the extent not inconsistent with applicable law) and binding upon the Parties and may be entered in any court of competent jurisdiction. Notwithstanding any provision in this Agreement, either Party may request any judicial, administrative, or other authority in any other jurisdiction to order any provisional or conservatory measure, including injunctive relief, specific performance, or other equitable relief, prior to the institute of legal or arbitration proceedings, or during the proceedings, for the preservation of its rights and interests or to enforce specific terms that are suitable for provisional remedies.”
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(cbDataCenter, true, false)}">
+                                            <table-row >
+                                                <table-cell padding-top="10pt"><block></block></table-cell>
+                                                <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                    <block>
+                                                        <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                            {!pointNumber}.
+                                                    </block></table-cell>
+                                                <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                    <block font-weight="bold">
+                                                        EU Data Center:
+                                                    </block>
+                                                    <block>
+                                                        Wrike shall store, manage, and maintain Customer Data in Wrike's Primary European Data Center instead of Wrike's US Data Center. Both Parties acknowledge and agree that Wrike's professional services and/or support staff may be required to access or transfer Customer Data outside of the EU zone as part of the delivery of the Services to Customer, and, Subscription add-ons powered by third-parties (if any, if purchased as outlined in an Order Form between Parties) may require transfer of Customer Data outside of the EU zone for such add-on to work as intended. Customer authorizes Wrike to make international transfers of Customer Data for only the foregoing limited purposes so long as applicable law for such transfers is respected.
+                                                    </block>
+                                                </table-cell>
+                                            </table-row>
+                                        </apex:outputText>
+                                        <table-row >
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                            <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                                <block>
+                                                    <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                        {!pointNumber}.
+                                                </block></table-cell>
+                                            <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                                <block font-weight="bold">
+                                                    Taxes:
+                                                </block>
+                                                <block>
+                                                    Fees do not include any direct or indirect local, state, federal or foreign taxes, levies, duties or similar governmental assessments of any nature, including value-added, use or withholding taxes (collectively, "Taxes"). Customer is responsible for paying all Taxes associated with its purchases hereunder, excluding taxes based on Wrike's net income or property. If Wrike has the legal obligation to pay or collect Taxes for which Customer is responsible under this section, the appropriate amount shall be invoiced to and paid by Customer, unless Customer provides Wrike with a valid tax exemption certificate authorized by the appropriate taxing authority.
+                                                    <apex:outputText rendered="{!quote.billToCountryCode == 'JP'}">
+                                                        <block font-weight="bold">Reverse Charge Mechanism of Japanese consumption tax shall be applied to these transactions.</block>
+                                                    </apex:outputText>
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                    </apex:outputText>
+                                    <table-row>
+                                        <table-cell padding-top="10pt"><block></block></table-cell>
+                                        <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                            <block>
+                                                <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                {!pointNumber}.
+                                            </block></table-cell>
+                                        <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                            <block font-weight="bold">
+                                                Modifications:
+                                            </block>
+                                            <block>
+                                                Other than applying a signature and filling in the related blank fields with information that matches Customer’s identity, any alteration or addition that Customer makes to this Order Form is void. No modification, amendment, or waiver of any provision of this Order Form shall be effective unless in writing and signed by the Party against whom the modification, amendment or waiver is to be asserted. No terms or conditions set forth on any Customer purchase order or preprinted form or document shall add to or vary the terms and conditions of this Order Form, and all such terms or conditions shall be null and void.
+                                            </block>
+                                        </table-cell>
+                                    </table-row>
+                                    <table-row >
+                                        <table-cell padding-top="10pt"><block></block></table-cell>
+                                        <table-cell font-weight="bold" font-size="8px" text-align="left" padding-top="10pt">
+                                            <block>
+                                                <apex:variable var="pointNumber" value="{!pointNumber + 1}"/>
+                                                {!pointNumber}.
+                                            </block></table-cell>
+                                        <table-cell font-size="8px" text-align="justify" padding-top="10pt">
+                                            <block font-weight="bold">
+                                                Representation on Authority of Parties/Signatories:
+                                            </block>
+                                            <block>
+                                                Each person signing this Order Form represents and warrants that he or she is duly authorized and has the legal capacity to perform under this Order Form. Each Party represents and warrants to the other that the execution and delivery of the Order Form and performance of such Party's obligations hereunder have been duly authorized and the Agreement is a valid and legal agreement binding on such Party and enforceable in accordance with its terms.
+                                            </block>
+                                        </table-cell>
+                                    </table-row>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!IF(otherTerms != '', true, false)}">
+                                    <apex:outputText rendered="{!NOT(quoteTotalIsNegative)}">
+                                        <table-row >
+                                            <table-cell font-weight="bold" font-size="10px" text-align="left" padding-top="10pt"><block>{!IF(isGoverningTermsExist, IF(hasReseller,'D.','C.'), IF(hasReseller,'C.','B.'))}</block></table-cell>
+                                            <table-cell number-columns-spanned="2" font-weight="bold" font-size="10px" padding-top="10pt">
+                                                <block>
+                                                    Other Terms:
+                                                </block>
+                                            </table-cell>
+                                        </table-row>
+                                    </apex:outputText>
+                                    <table-row >
+                                        <apex:outputText rendered="{!NOT(quoteTotalIsNegative)}">
+                                            <table-cell padding-top="10pt"><block></block></table-cell>
+                                        </apex:outputText>
+                                        <table-cell number-columns-spanned="{!IF(quoteTotalIsNegative, 3, 2)}" font-size="8px" text-align="justify" padding-top="{!IF(quoteTotalIsNegative, '', '10pt')}">
+                                            <block linefeed-treatment="preserve">{!HTMLENCODE(otherTerms)}</block>
+                                        </table-cell>
+                                    </table-row> 
+                                </apex:outputText>
+                            </table-body>
+                        </table>
+                    </block>
+                </block>
+            </block>
+        </apex:outputText>
+    </block>
+</apex:page>

@@ -1,0 +1,19 @@
+<apex:component >
+    <apex:attribute name="ctrl" type="AbstractPagingController" required="true" description="Pagination controller"/>
+    <apex:outputPanel layout="block" styleClass="pSearchShowMore" id="otpNav2" rendered="{!ctrl.pages > 1 && ctrl.total > 0}">
+        <br/>
+        Total Records Found: <apex:outputText >{!ctrl.total}</apex:outputText>
+        <apex:image url="/img/search_prevarrow_disabled.gif" styleClass="prevArrow" rendered="{!NOT(ctrl.hasPrevious)}"/>
+        <apex:image url="/img/search_prevarrow.gif" styleClass="prevArrow" rendered="{!ctrl.hasPrevious}"/>
+        <apex:commandLink action="{!ctrl.Previous}" value="Previous Page" rendered="{!ctrl.hasPrevious}"/>
+        <apex:outputPanel styleClass="pShowLess noLink" style="color:grey" rendered="{!NOT(ctrl.hasPrevious)}">Previous Page</apex:outputPanel>
+        &nbsp;({!ctrl.pageIndex + 1}-{!ctrl.pages})&nbsp;
+        <apex:outputPanel styleClass="pShowLess noLink" style="color:grey" rendered="{!NOT(ctrl.hasNext)}">Next Page</apex:outputPanel>
+        <apex:commandLink value="Next Page" rendered="{!ctrl.hasNext}" action="{!ctrl.Next}"/>&nbsp;
+        <apex:image url="/img/search_nextarrow.gif" styleClass="nextArrow" rendered="{!ctrl.hasNext}"/>
+        <apex:image url="/img/search_nextarrow_disabled.gif" rendered="{!NOT(ctrl.hasNext)}"/>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!ctrl.total == 0}">
+        <div style="border:1px solid #e0e3e5;padding:5px;">No records to display</div>  
+    </apex:outputPanel>
+</apex:component>

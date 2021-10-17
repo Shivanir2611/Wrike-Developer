@@ -1,0 +1,68 @@
+<aura:component>
+    <aura:attribute name="selectedItem" type="LookupInputSearchResultItem" required="true"/>
+
+    <aura:attribute access="private" name="searchText" type="String" default=""/>
+    <aura:attribute access="private" name="searchResultItems" type="LookupInputSearchResultItem[]"/>
+    <aura:attribute access="private" name="preloader" type="Boolean" default="false"/>
+    <aura:attribute access="private" name="hasFocus" type="Boolean" default="false"/>
+    <aura:attribute access="private" name="searchThrottlingTimeout" type="Map"/>
+
+    <aura:registerEvent name="onSearch" type="c:lookupInputSearchEvent"/>
+
+    <aura:method name="search" action="{!c.search}">
+        <aura:attribute name="serverAction" type="Aura.Action" required="true"/>
+    </aura:method>
+
+    <div class="slds-form-element">
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class="{!'slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ' + if(and(v.hasFocus, !empty(v.searchResultItems)), 'slds-is-open' , '')}" aria-expanded="false" aria-haspopup="listbox" role="combobox">
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <input type="text"
+                               value="{!empty(v.selectedItem) ? '' : v.selectedItem.title}"
+                               oninput="{!c.onInput}"
+                               onfocus="{!c.onFocus}"
+                               onblur="{!c.onBlur}"
+                               readonly="{!not(empty(v.selectedItem))}"
+                               class="slds-input slds-combobox__input" id="combobox-id-1" aria-autocomplete="list" aria-controls="listbox-id-1" autocomplete="off" role="textbox" placeholder="Search..."/>
+                        <aura:if isTrue="{!v.preloader}">
+                            <div aura:id="spinner" role="presentation" class="slds-input__icon slds-input__icon_right slds-is-relative">
+                                <div role="status" class="slds-spinner slds-spinner_xx-small slds-spinner_delayed">
+                                    <span class="slds-assistive-text">Loading</span>
+                                    <div class="slds-spinner__dot-a"></div>
+                                    <div class="slds-spinner__dot-b"></div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!and(empty(v.selectedItem), not(v.preloader))}">
+                            <lightning:icon iconName="utility:search" size="x-small" class="slds-input__icon slds-input__icon_right"/>
+                        </aura:if>
+                        <aura:if isTrue="{!not(empty(v.selectedItem))}">
+                            <lightning:buttonIcon iconName="utility:close" variant="bare" alternativeText="Remove"
+                                                  onclick="{!c.clearSelection}"
+                                                  class="slds-input__icon slds-input__icon_right"/>
+                        </aura:if>
+                    </div>
+                    <div id="listbox" class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <aura:iteration items="{!v.searchResultItems}" var="resultItem">
+                                <li role="presentation" class="slds-listbox__item">
+                                    <div id="{!resultItem.id}" onmousedown="{!c.onResultItemClick}" class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                          <lightning:icon iconName="{!empty(resultItem.icon) ? 'standard:default' : resultItem.icon}"
+                                                          size="small" alternativeText="Result item icon" />
+                                        </span>
+                                        <span class="slds-media__body">
+                                            <span class="slds-listbox__option-text slds-listbox__option-text_entity">{!resultItem.title}</span>
+                                            <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">{!resultItem.subtitle}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </aura:iteration>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

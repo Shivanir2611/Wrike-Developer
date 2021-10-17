@@ -1,0 +1,4 @@
+<apex:component controller="DateTimeController">
+<apex:attribute assignTo="{!dateTimeValue}" description="DateTime value" name="value" type="DateTime"/>
+{!formattedValue}
+</apex:component>

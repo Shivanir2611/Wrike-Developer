@@ -1,0 +1,749 @@
+<!--***********************************************************************************
+* Page Name : QuoteLineItemsIntervalGroup
+* Created By : Azarudeen (Exafort)
+-----------------------------------------------------------------------------------
+* Description : This page is created to display the line items by interval group in the CPQ quote template
+-----------------------------------------------------------------------------------
+* Version History:
+* Version      Developer Name      Date            Detail Features
+* 1.0          Azarudeen        04-22-2020       Initial Development
+* 2.0          Azarudeen        05-18-2020       Conditional Display of columns, added Unit of Measure for quantity, interval format change
+**********************************************************************************-->
+<apex:page controller="QuoteLineItemsIntervalGroupV1Controller" showHeader="false" sidebar="false" cache="false" contentType="text/xml" action="{!getLines}">
+    <block>
+        <apex:outputText rendered="{!AND(subscriptionProductsExists, showSubscriptionTable)}">
+            <block border-after-width="1px" margin-top="10px">
+                <block margin-bottom="15px">
+                    <table table-layout="fixed" width="100%" >
+                        <table-body>
+                            <table-row>
+                                <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px" >
+                                    <block margin-left="10px" margin-top="2px" font-weight="bold" >{!HTMLENCODE(SUBSCRIPTIONFEES)}</block>
+                                </table-cell>
+                            </table-row>
+                        </table-body>
+                    </table>
+                    <table table-layout="fixed" border="1px solid black" width="100%">
+                        <!-- Product Name column -->
+                        <table-column/>
+                        <!-- Quantity column -->
+                        <table-column column-width="8%"/>
+                        <!-- Annual List Rate column -->
+                        <apex:outputText rendered="{!displayAnnualListRate}">
+                            <table-column column-width="9%"/>
+                        </apex:outputText>
+                        <!-- Annual Effective Rate column -->
+                        <apex:outputText rendered="{!displayAnnualEffectiveRate}"> 
+                            <table-column column-width="9%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!quote.DisplayAnnualPartnerRate__c}">
+                            <table-column column-width="9%"/>
+                        </apex:outputText>
+                        <!-- Discount column -->
+                        <apex:outputText rendered="{!displayDiscount}">
+                            <table-column column-width="9%"/>
+                        </apex:outputText>
+                        <!-- One-Time Discount column -->
+                        <apex:outputText rendered="{!displayOneTimeDiscount}">
+                            <table-column column-width="9%"/>
+                        </apex:outputText>
+                        
+                        <!-- Partner Discount column -->
+                        <apex:outputText rendered="{!displayPartnerDiscount}">
+                            <table-column column-width="11%"/>
+                        </apex:outputText>
+                        <!-- Term Effective Total column -->
+                        <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                            <table-column column-width="11%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!quote.DisplayPartnerPurchasePrice__c}">
+                            <table-column column-width="11%"/>
+                        </apex:outputText>
+                        <table-body>
+                            <table-row >
+                                <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(PRODUCTS)}</block>
+                                </table-cell>
+                                <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(QTY)}</block>
+                                </table-cell>
+                                <apex:outputText rendered="{!displayAnnualListRate}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">{!HTMLENCODE(ANNUALLISTRATE)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayAnnualEffectiveRate}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always" border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">{!HTMLENCODE(ANNUALEFFECTIVERATE)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!quote.DisplayAnnualPartnerRate__c}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always" border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">ANNUAL PARTNER RATE</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayDiscount}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(DISCOUNT)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayOneTimeDiscount}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(ONETIMEDISCOUNT)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayPartnerDiscount}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">PARTNER COMMISSION</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(LINETOTAL)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!quote.DisplayPartnerPurchasePrice__c}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">PARTNER PURCHASE PRICE</block>
+                                    </table-cell>
+                                </apex:outputText>
+                            </table-row>
+                            <apex:repeat value="{!intervalKeyList}" var="deploymentKey">
+                                <table-row>
+                                    <table-cell number-columns-spanned="{!numberOfColumnsToSpan}" background-color="lightgrey" font-weight="bold" border="1px solid black" text-align="left" height="10px" font-size="8px" padding="4pt">
+                                        <block>{!displayOnlyDatesMap[deploymentKey]}</block>
+                                    </table-cell>
+                                </table-row>
+                                <apex:outputText rendered="{!IF(deploymentScheduleIntervalMap[deploymentKey]=='Wrike Solution Package', true, false)}">
+                                    <table-row keep-with-previous.within-page="always">
+                                        <table-cell number-columns-spanned="2" font-weight="bold" font-style="italic" border="1px solid black" text-align="left" height="8px" font-size="8px" padding="4pt">
+                                            <block>{!deploymentScheduleIntervalMap[deploymentKey]}</block>
+                                        </table-cell>
+                                        <apex:outputText rendered="{!displayAnnualListRate}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!eachIntervalTotalAnnualListRate[deploymentKey]}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!displayAnnualEffectiveRate}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!eachIntervalTotalAnnualEffectRate[deploymentKey]}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quote.DisplayAnnualPartnerRate__c}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!eachIntervalTotalAnnualPartnerRate[deploymentKey]}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!displayDiscount}">
+                                            <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="8pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!IF(AND(eachIntervalOneTotalDiscountInAmt[deploymentKey]!=null,eachIntervalOneTotalDiscountInAmt[deploymentKey] > 0),eachIntervalTotalDiscountInAmt[deploymentKey] - eachIntervalOneTotalDiscountInAmt[deploymentKey],eachIntervalTotalDiscountInAmt[deploymentKey])}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="8pt">
+                                                    <block>
+                                                        <apex:outputText value="({0,number,###,###,##0.00}%)">
+                                                            <apex:param value="{!IF(subscriptionsEachIntervalLineTotal[deploymentKey]!=0,((eachIntervalTotalDiscountInAmt[deploymentKey] / eachIntervalTotalAnnualEffectiveRate[deploymentKey])*100), 100)}"/>
+                                                        </apex:outputText>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!displayOneTimeDiscount}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!IF(eachIntervalOneTotalDiscountInAmt[deploymentKey] != null, eachIntervalOneTotalDiscountInAmt[deploymentKey], 0)}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!displayPartnerDiscount}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <apex:outputText rendered="{!eachIntervalPartnerDiscount[deploymentKey] != null}">
+                                                        <apex:outputText rendered="{!discountDisplayType = 'Currency'}">
+                                                            <c:currencyField currency="{!currencyISOCode}"
+                                                                             value="{!subscriptionsEachIntervalCustomerAmount[deploymentKey] - subscriptionsEachIntervalLinePartnerTotal[deploymentKey]}"/>
+                                                        </apex:outputText>
+                                                        <apex:outputText rendered="{!discountDisplayType = 'Percentage'}">
+                                                            <apex:outputText value="({0,number,###,###,##0.00}%)">
+                                                                <apex:param value="{!IF(
+                                                                        subscriptionsEachIntervalCustomerAmount[deploymentKey] != 0,
+                                                                        (subscriptionsEachIntervalCustomerAmount[deploymentKey] - subscriptionsEachIntervalLinePartnerTotal[deploymentKey])
+                                                                                / subscriptionsEachIntervalCustomerAmount[deploymentKey]
+                                                                                * 100,
+                                                                        100)}"/>
+                                                            </apex:outputText>
+                                                        </apex:outputText>
+                                                    </apex:outputText>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!subscriptionsEachIntervalLineTotal[deploymentKey]}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!quote.DisplayPartnerPurchasePrice__c}">
+                                            <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]+1}" border="1px solid black" text-align="center" font-size="8px" padding-top="8pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!subscriptionsEachIntervalLinePartnerTotal[deploymentKey]}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                    </table-row>
+                                </apex:outputText>
+                                <apex:variable var="count" value="{!1}"/>  
+                                <apex:variable var="previousQuantity" value="{!123456}"/>
+                                <apex:variable var="previousProductName" value="Base Plan"/>
+                                <apex:repeat value="{!intervalKeyWithLineItemsMap[deploymentKey]}" var="eachSupport">
+                                    <apex:variable var="unitName" value="{!IF(eachSupport.SBQQ__Product__r.PG1__c == 'License', 'Users', '')}"/>
+                                    <table-row>
+                                        <table-cell border="1px solid black" text-align="left" font-size="8px" padding="4pt">
+                                            <apex:outputText rendered="{!IF(notFrmSolutionPkgWithinSameIntervalMap[eachSupport.id]=true, true, false)}">
+                                                <block margin-left="15px">{!eachSupport.SBQQ__ProductName__c}</block>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!IF(notFrmSolutionPkgWithinSameIntervalMap[eachSupport.id]=false, true, false)}">
+                                                <block font-weight="{!IF(deploymentScheduleIntervalMap[deploymentKey]=='Wrike Solution Package', 'bold','')}" margin-left="0px">{!eachSupport.SBQQ__ProductName__c}</block>
+                                            </apex:outputText>
+                                        </table-cell>
+                                        <apex:outputText rendered="{!IF(deploymentScheduleIntervalMap[deploymentKey]=='Wrike Solution Package', true, false)}">
+                                            <apex:outputText rendered="{!IF(notFrmSolutionPkgWithinSameIntervalMap[eachSupport.id]=true, true, false)}">
+                                                <apex:outputText rendered="{!IF(previousQuantity!=eachSupport.SBQQ__EffectiveQuantity__c, true, false)}">
+                                                    <table-cell border-bottom-style="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], 'solid', '')}" border-bottom-width="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], '1px', '0px')}" border-bottom-color="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], 'black', '')}" border-top-style="solid" border-top-width="1px" border-top-color="{!IF(previousQuantity!=eachSupport.SBQQ__EffectiveQuantity__c,'black' ,'white')}" text-align="center" font-size="8px" padding="4pt">
+                                                        <block>
+                                                            <block>
+                                                                <apex:outputText value="{0, number, ###,###,##0}">
+                                                                    <apex:param value="{!IF(previousQuantity==eachSupport.SBQQ__EffectiveQuantity__c,'' , eachSupport.SBQQ__EffectiveQuantity__c)}">
+                                                                    </apex:param>
+                                                                </apex:outputText>
+                                                            </block>
+                                                            <block>
+                                                                {!unitName}
+                                                            </block>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!IF(AND(previousQuantity==eachSupport.SBQQ__EffectiveQuantity__c,OR(BEGINS(eachSupport.SBQQ__ProductName__c, 'Additional'),BEGINS(eachSupport.SBQQ__ProductName__c, 'Unlimited'),Contains(eachSupport.SBQQ__ProductName__c, 'Support'))), true, false)}">
+                                                    <table-cell border-bottom-style="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], 'solid', '')}" border-bottom-width="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], '1px', '0px')}" border-bottom-color="{!IF(count == intervalKeyWithLineItemsMapListSize[deploymentKey], 'black', '')}" border-top-style="solid" border-top-width="1px" border-top-color="black" text-align="center" font-size="8px" padding="4pt">
+                                                        <block>
+                                                            <block>
+                                                                <apex:outputText value="{0, number, ###,###,##0}">
+                                                                    <apex:param value="{!eachSupport.SBQQ__EffectiveQuantity__c}">
+                                                                    </apex:param>
+                                                                </apex:outputText>
+                                                            </block>
+                                                            <block>
+                                                                {!unitName}
+                                                            </block>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!IF(notFrmSolutionPkgWithinSameIntervalMap[eachSupport.id]=false, true, false)}">
+                                                <table-cell border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                                    <block>
+                                                        <block>
+                                                            <apex:outputText value="{0, number, ###,###,##0}">
+                                                                <apex:param value="{!eachSupport.SBQQ__EffectiveQuantity__c}">
+                                                                </apex:param>
+                                                            </apex:outputText>
+                                                        </block>
+                                                        <block>
+                                                            {!unitName}
+                                                        </block>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(deploymentScheduleIntervalMap[deploymentKey]!='Wrike Solution Package', true, false)}">
+                                            <table-cell border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                                <block>
+                                                    <block>
+                                                        <apex:outputText value="{0, number, ###,###,##0}">
+                                                            <apex:param value="{!eachSupport.SBQQ__EffectiveQuantity__c}">
+                                                            </apex:param>
+                                                        </apex:outputText>
+                                                    </block>
+                                                    <block>
+                                                        {!unitName}
+                                                    </block>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(AND(deploymentScheduleIntervalMap[deploymentKey]=='Wrike Solution Package', notFrmSolutionPkgWithinSameIntervalMap[eachSupport.id]=false), true, false)}">
+                                            <apex:outputText rendered="{!displayAnnualListRate}">
+                                                <table-cell  border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.Annual_List_Price__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText> 
+                                            <apex:outputText rendered="{!displayAnnualEffectiveRate}">
+                                                <table-cell  border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.QS_Annual_Recurring_Revenue__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayDiscount}">
+                                                <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                                    <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                        <block>
+                                                            <c:currencyField currency="{!currencyISOCode}" value="{!IF(AND(eachSupport.TermNonRenewableDiscount__c != null,eachSupport.TermNonRenewableDiscount__c>0),eachSupport.SBQQ__TotalDiscountAmount__c-eachSupport.TermNonRenewableDiscount__c,eachSupport.SBQQ__TotalDiscountAmount__c)}"/>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                                    <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                        <block>
+                                                            <apex:outputText value="({0,number,###,###,##0.00}%)">
+                                                                <apex:param value="{!eachSupport.SBQQ__TotalDiscountRate__c}"/>
+                                                            </apex:outputText>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayOneTimeDiscount}">
+                                                <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!IF(eachSupport.TermNonRenewableDiscount__c != null, eachSupport.TermNonRenewableDiscount__c, 0)}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            
+                                            <apex:outputText rendered="{!displayPartnerDiscount}">
+                                                <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <apex:outputText rendered="{!eachSupport.SBQQ__PartnerDiscount__c != null}">
+                                                            <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.SBQQ__CustomerTotal__c - eachSupport.SBQQ__NetTotal__c}"/>
+                                                        </apex:outputText>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                                <table-cell  border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.SBQQ__NetTotal__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(deploymentScheduleIntervalMap[deploymentKey]!='Wrike Solution Package', true, false)}">
+                                            <apex:outputText rendered="{!displayAnnualListRate}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.Annual_List_Price__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayAnnualEffectiveRate}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.QS_Annual_Recurring_Revenue__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayDiscount}">
+                                                <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                                    <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                        <block>
+                                                            <c:currencyField currency="{!currencyISOCode}" value="{!IF(AND(eachSupport.TermNonRenewableDiscount__c != null,eachSupport.TermNonRenewableDiscount__c>0),eachSupport.SBQQ__TotalDiscountAmount__c-eachSupport.TermNonRenewableDiscount__c,eachSupport.SBQQ__TotalDiscountAmount__c)}"/>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                                    <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                        <block>
+                                                            <apex:outputText value="({0,number,###,###,##0.00}%)">
+                                                                <apex:param value="{!eachSupport.SBQQ__TotalDiscountRate__c}"/>
+                                                            </apex:outputText>
+                                                        </block>
+                                                    </table-cell>
+                                                </apex:outputText>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayOneTimeDiscount}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!IF(eachSupport.TermNonRenewableDiscount__c != null, eachSupport.TermNonRenewableDiscount__c, 0)}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            
+                                            <apex:outputText rendered="{!displayPartnerDiscount}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <apex:outputText rendered="{!eachSupport.SBQQ__PartnerDiscount__c != null}">
+                                                            <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.SBQQ__CustomerTotal__c - eachSupport.SBQQ__NetTotal__c}"/>
+                                                        </apex:outputText>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                                <table-cell number-rows-spanned="{!rowspanHelperMap[deploymentKey]}" border="1px solid black" text-align="center" font-size="8px" padding-top="4pt">
+                                                    <block>
+                                                        <c:currencyField currency="{!currencyISOCode}" value="{!eachSupport.SBQQ__NetTotal__c}"/>
+                                                    </block>
+                                                </table-cell>
+                                            </apex:outputText>
+                                        </apex:outputText>
+                                    </table-row>
+                                    <apex:variable var="count" value="{!count+1}"/>
+                                    <apex:variable var="previousQuantity" value="{!eachSupport.SBQQ__EffectiveQuantity__c}"/>
+                                    <apex:variable var="previousProductName" value="{!eachSupport.SBQQ__ProductName__c}"/>
+                                </apex:repeat>
+                            </apex:repeat>
+                            <table-row>
+                                <table-cell number-columns-spanned="{!subscriptionTotalTextSpan}" background-color="lightgrey" font-weight="bold" font-style="italic" border="1px solid black" text-align="right" height="8px" font-size="8px" padding="4pt">
+                                    <block>Subscription Fees Total:</block>
+                                </table-cell>
+                                <table-cell font-weight="bold" border="1px solid black" text-align="center" height="10px" font-size="8px" padding="4pt">
+                                    <block>
+                                        <c:currencyField currency="{!currencyISOCode}" value="{!SubscriptionFeesTotal}"/>
+                                    </block>
+                                </table-cell>
+                            </table-row>
+                        </table-body>
+                    </table>
+                </block>
+            </block>
+        </apex:outputText>
+        <apex:outputText rendered="{!professionalServicesExists}">
+            <block border-after-width="1px" margin-top="10px">
+                <block margin-bottom="15px" keep-together="always">
+                    <table table-layout="fixed" width="100%" >
+                        <table-body>
+                            <table-row>
+                                <table-cell  border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px" >
+                                    <block  margin-left="10px" margin-top="2px" font-weight="bold" >{!HTMLENCODE(PROFSERVICESONETIMEFEES)}</block>
+                                </table-cell>
+                            </table-row>
+                        </table-body>
+                    </table>
+                    <table table-layout="fixed" width="100%">
+                        <table-column/>
+                        <table-column column-width="8%"/>
+                        <apex:outputText rendered="{!displayAnnualListRate}">
+                            <table-column column-width="15%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayDiscount}">
+                            <table-column column-width="15%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayPartnerDiscount}">
+                            <table-column column-width="15%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                            <table-column column-width="25%"/>
+                        </apex:outputText>
+                        <table-body>
+                            <table-row keep-with-previous.within-page="always">
+                                <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(PRODUCTS)}</block>
+                                </table-cell>
+                                <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(QTY)}</block>
+                                </table-cell>
+                                <apex:outputText rendered="{!displayAnnualListRate}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">{!HTMLENCODE(LISTRATE)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayDiscount}">
+                                    <table-cell keep-together.within-column="always" background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(DISCOUNT)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayPartnerDiscount}">
+                                    <table-cell keep-together.within-column="always" background-color="#04454D" color="White" border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">PARTNER COMMISSION</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(LINETOTAL)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                            </table-row>
+                            <apex:outputText rendered="{!professionalServPackage}">
+                                <table-row>
+                                    <table-cell border="1px solid black" font-weight="bold" font-style="italic" text-align="left" height="8px" font-size="8px" padding="4pt" number-columns-spanned="2"><block>Professional Services</block></table-cell>
+                                    <apex:outputText rendered="{!displayAnnualListRate}">
+                                        <table-cell border="1px solid black" number-rows-spanned="{!numberOfRowsToSpanProfServ}" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!profServPackageListRate}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayDiscount}">
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                            <table-cell  border="1px solid black" number-rows-spanned="{!numberOfRowsToSpanProfServ}" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!profServPackageDiscountInAmt}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                            <table-cell border="1px solid black" number-rows-spanned="{!numberOfRowsToSpanProfServ}" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <apex:outputText value="({0,number,###,###,##0.00})">
+                                                        <apex:param value="{!profServPackageDiscountInPercentage}"/>
+                                                    </apex:outputText>%
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayPartnerDiscount}">
+                                        <table-cell border="1px solid black" number-rows-spanned="{!numberOfRowsToSpanProfServ}" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                            <block>
+                                                <apex:outputText value="({0,number,###,###,##0.00})">
+                                                    <apex:param value="{!profServPackagePartnerDiscount}"/>
+                                                </apex:outputText>%
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                        <table-cell border="1px solid black" number-rows-spanned="{!numberOfRowsToSpanProfServ}" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!profServPackageTotal}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                </table-row>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!professionalServPackage}">
+                                <apex:repeat value="{!professionalServicesPackageList}" var="servicesPackage"> 
+                                    <table-row>
+                                        <table-cell border="1px solid black" text-align="left" font-size="8px" padding="4pt">
+                                            <block margin-left="15px">
+                                                    {!servicesPackage.SBQQ__ProductName__c}
+                                            </block>
+                                        </table-cell>
+                                        <table-cell border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                    {!servicesPackage.SBQQ__EffectiveQuantity__c}
+                                            </block>
+                                        </table-cell>
+                                    </table-row>
+                                </apex:repeat>
+                            </apex:outputText>
+                            <apex:repeat value="{!professionalServicesList}" var="services"> 
+                                <table-row>
+                                    <table-cell border="1px solid black" text-align="left" font-size="8px" padding="4pt"><block>{!services.SBQQ__ProductName__c}</block></table-cell>
+                                    <table-cell border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                        <block>
+                                                {!services.SBQQ__EffectiveQuantity__c}
+                                        </block>
+                                    </table-cell>
+                                    <apex:outputText rendered="{!displayAnnualListRate}">
+                                        <table-cell border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!services.SBQQ__ListTotal__c}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayDiscount}">
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                            <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!services.SBQQ__TotalDiscountAmount__c}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                            <table-cell border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <apex:outputText value="({0,number,###,###,##0.00}%)">
+                                                        <apex:param value="{!services.SBQQ__TotalDiscountRate__c}"/>
+                                                    </apex:outputText>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                        <table-cell border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!services.SBQQ__NetTotal__c}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                </table-row>
+                            </apex:repeat>
+                            <table-row keep-with-previous.within-page="always">
+                                <apex:outputText >
+                                    <table-cell number-columns-spanned="{!numberOfOnetimeColumnsToSpan}" background-color="lightgrey" font-weight="bold" font-style="italic" border="1px solid black" text-align="right" height="8px" font-size="8px" padding="4pt">
+                                        <block>One-Time Fees Total:</block>
+                                    </table-cell>
+                                    <table-cell font-weight="bold" border="1px solid black" text-align="center" height="10px" font-size="8px" padding="4pt">
+                                        <block>
+                                            <c:currencyField currency="{!currencyISOCode}" value="{!professionalServicesTotal}"/>
+                                        </block>
+                                    </table-cell>
+                                </apex:outputText>
+                            </table-row>
+                        </table-body>
+                    </table>
+                </block>
+            </block>
+        </apex:outputText>
+        <apex:outputText rendered="{!otherOneTimeProductsExists}">
+            <block border-after-width="1px" margin-top="10px">
+                <block margin-bottom="15px" keep-together="always">
+                    <table table-layout="fixed" width="100%" >
+                        <table-body>
+                            <table-row>
+                                <table-cell  border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px" >
+                                    <block  margin-left="10px" margin-top="2px" font-weight="bold" >{!HTMLENCODE(OTHERONETIMEFEES)}</block>
+                                </table-cell>
+                            </table-row>
+                        </table-body>
+                    </table>
+                    <table table-layout="fixed" width="100%">
+                        <table-column column-width="{!IF(AND(displayDiscount=false,displayAnnualListRate=false,displayTermEffectiveTotal=false),'100%', IF(AND(displayDiscount=false,displayAnnualListRate=false), '75%', IF(AND(displayDiscount=false,displayTermEffectiveTotal=false), '85%',IF(AND(displayAnnualListRate=false,displayTermEffectiveTotal=false),'85%',IF(OR(displayDiscount=false,displayAnnualListRate=false), '60%', IF(displayTermEffectiveTotal=false, '70%', '45%'))))))}"/>
+                        <apex:outputText rendered="{!displayAnnualListRate}">
+                            <table-column column-width="15%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayDiscount}">
+                            <table-column column-width="15%"/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                            <table-column column-width="25%"/>
+                        </apex:outputText>
+                        <table-body>
+                            <table-row keep-with-previous.within-page="always">
+                                <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                    <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(PRODUCTS)}</block>
+                                </table-cell>
+                                <apex:outputText rendered="{!displayAnnualListRate}">
+                                    <table-cell background-color="#04454D" color="White" keep-together.within-column="always"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block wrap-option="wrap" margin-top="3px" margin-bottom="3px">{!HTMLENCODE(LISTRATE)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayDiscount}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-style="italic" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(DISCOUNT)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                    <table-cell background-color="#04454D" color="White"  border="1px solid black" text-align="center" font-weight="bold" font-size="8px" >
+                                        <block margin-top="3px" margin-bottom="3px">{!HTMLENCODE(LINETOTAL)}</block>
+                                    </table-cell>
+                                </apex:outputText>
+                            </table-row>
+                            <apex:repeat value="{!otherOneTimeFeesMap}" var="otherOneTimeProducts">
+                                <table-row>
+                                    <table-cell  border="1px solid black" text-align="left" font-size="8px" padding="4pt">
+                                        <block>{!otherOneTimeProducts.SBQQ__ProductName__c}</block>
+                                    </table-cell>
+                                    <apex:outputText rendered="{!displayAnnualListRate}">
+                                        <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!otherOneTimeProducts.SBQQ__ListTotal__c}"/>
+                                            </block>
+                                        </table-cell >
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayDiscount}">
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Currency', true, false)}">
+                                            <table-cell  border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <c:currencyField currency="{!currencyISOCode}" value="{!otherOneTimeProducts.SBQQ__TotalDiscountAmount__c}"/>
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!IF(discountDisplayType='Percentage', true, false)}">
+                                            <table-cell border="1px solid black" text-align="center" font-style="italic" font-size="8px" padding-top="4pt">
+                                                <block>
+                                                    <apex:outputText value="({0,number,###,###,##0.00})">
+                                                        <apex:param value="{!otherOneTimeProducts.SBQQ__TotalDiscountRate__c}"/>
+                                                    </apex:outputText>%
+                                                </block>
+                                            </table-cell>
+                                        </apex:outputText>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!displayTermEffectiveTotal}">
+                                        <table-cell  border="1px solid black" text-align="center" font-size="8px" padding="4pt">
+                                            <block>
+                                                <c:currencyField currency="{!currencyISOCode}" value="{!otherOneTimeProducts.SBQQ__NetTotal__c}"/>
+                                            </block>
+                                        </table-cell>
+                                    </apex:outputText>
+                                </table-row>
+                            </apex:repeat>
+                            <table-row keep-with-previous.within-page="always">
+                                <apex:outputText rendered="{!IF(OR(displayDiscount=true,displayAnnualListRate=true,displayTermEffectiveTotal=true),true,false)}">--> 
+                                    <table-cell number-columns-spanned="{!IF(AND(displayDiscount=false,displayAnnualListRate=false), 1, IF(AND(displayDiscount=false,displayTermEffectiveTotal=false),1,IF(AND(displayAnnualListRate=false,displayTermEffectiveTotal=false),1,IF(OR(displayDiscount=false,displayAnnualListRate=false,displayTermEffectiveTotal=false), 2, 3))))}" background-color="lightgrey" font-weight="bold" font-style="italic" border="1px solid black" text-align="right" height="8px" font-size="8px" padding="4pt">
+                                        <block>Other One-Time Fees:</block>
+                                    </table-cell>
+                                    <table-cell font-weight="bold" border="1px solid black" text-align="center" height="10px" font-size="8px" padding="4pt">
+                                        <block>
+                                            <c:currencyField currency="{!currencyISOCode}" value="{!OtherOneTimeFeesTotal}"/>
+                                        </block>
+                                    </table-cell>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!IF(AND(displayDiscount=false,displayAnnualListRate=false,displayTermEffectiveTotal=false),true,false)}">
+                                    <table-cell font-weight="bold" border="1px solid black" text-align="right" height="18px" font-size="8px">
+                                        <table  width="100%" height="100%">
+                                            <table-column column-width="92%"/>
+                                            <table-column column-width="8%"/>
+                                            <table-body>
+                                                <table-row>
+                                                    <table-cell background-color="lightgrey" border="1px solid #696969" border-right-color="black" font-weight="bold" font-style="italic" text-align="right" padding="4pt" height="10px" font-size="8px" >
+                                                        <block>Other One-Time Fees:</block>
+                                                    </table-cell>
+                                                    <table-cell font-weight="bold" border="1px solid #696969"  text-align="center" height="10px" font-size="8px" padding="4pt">
+                                                        <block>
+                                                            <c:currencyField currency="{!currencyISOCode}" value="{!OtherOneTimeFeesTotal}"/>
+                                                        </block>
+                                                    </table-cell>
+                                                </table-row>
+                                            </table-body>
+                                        </table>
+                                    </table-cell>
+                                </apex:outputText>
+                            </table-row>
+                        </table-body>
+                    </table>
+                </block>
+            </block>
+        </apex:outputText>
+        <block border-after-width="1px" margin-top="10px">
+            <block margin-bottom="15px" keep-together="always">
+                <table table-layout="fixed" width="100%" >
+                    <table-column column-width="78%"/>
+                    <table-column column-width="22%"/>
+                    <table-body>
+                        <table-row>
+                            <table-cell text-align="right" font-weight="bold" font-size="12px" >
+                                <block font-weight="bold" margin-right="5px">
+                                    {!IF(hasReseller, 'Partner ', '') + '' + IF(grandTotal < 0, 'Credit Total', 'Order Total') + ', ' + HTMLENCODE(currencyISOCode)}:
+                                </block>
+                            </table-cell>
+                            <table-cell font-weight="bold" text-align="right" font-size="12px" >
+                                <block font-weight="bold" >
+                                    <c:currencyField currency="{!currencyISOCode}" value="{!grandTotal}"/>
+                                </block>
+                            </table-cell>
+                        </table-row>
+                    </table-body>
+                </table>
+            </block>
+        </block>
+        <block font-size="8px" padding-bottom="10pt">
+            <apex:outputText rendered="{!AND(quote.OneTimeDiscountApplied__c, oneTimeDiscountTotal > 0)}">
+                The Subscription Fees described above include a one-time&nbsp;
+                <c:currencyField currency="{!currencyISOCode}" value="{!oneTimeDiscountTotal}"/>
+                discount.
+                The Parties hereby agree and acknowledge this one-time discount shall not be applied to any subsequent Subscription Term(s).
+            </apex:outputText>
+        </block>
+    </block>
+</apex:page>

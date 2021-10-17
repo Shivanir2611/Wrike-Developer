@@ -1,0 +1,23 @@
+<apex:component >
+    <style>
+        .preloader {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            bottom: 0;
+            right: 0;
+            z-index: 1001;
+            margin-top: -40px;
+            margin-left: -65px;
+        }
+    </style>
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: black;">
+        &nbsp;
+    </div>
+    <div class="preloader">
+        <div style="display: inline-block; padding: 2px; background-color: #fff; width: 125px;">
+            <img src="/img/loading.gif" style="float: left; margin: 8px;" />
+            <span style="display: inline-block; padding: 10px 0px;">Please Wait...</span>
+        </div>
+    </div>
+</apex:component>

@@ -1,0 +1,309 @@
+<apex:component >
+    <apex:attribute name="selectedType" type="String" required="true" description="Selected Amendment Type"/>
+    <apex:attribute name="isRenderAllTypes" type="Boolean" required="false" default="false" description="isRenderAllTypes"/>
+    <apex:attribute name="nextButtonId" type="String" required="false" default="" description="nextButtonId"/>
+    <apex:attribute name="width" type="String" required="false" default="380px" description="width"/>
+    <apex:attribute name="height" type="String" required="false" default="120px" description="height"/>
+
+    <apex:stylesheet value="{!$Resource.AmendmentSelectStyles}"/>
+    <style>
+        .tableContainer {
+            width: {!width} !important;
+            height: {!height} !important;
+        }
+    </style>
+
+    <apex:variable var="isOneImage" value="{!selectedType != '' && !isRenderAllTypes}"/>
+    <apex:outputPanel rendered="{!isOneImage}">
+        <style>
+            .tableContainer {
+                border: none !important;
+                opacity: 1 !important;
+            }
+        </style>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!NOT(isOneImage)}">
+        <script>
+        var selectedType = "{!selectedType}";
+        var nextButton = null;
+        window.onload = function(e){
+            selectedType = "{!selectedType}";
+            var amendmentTypeContainers = document.getElementsByClassName("tableContainer");
+
+            nextButton = document.getElementById("{!nextButtonId}");
+            if (nextButton) {
+                nextButton.disabled = true;
+                nextButton.classList.add("btnDisabled");
+            }
+
+//            for (var i = 0; i < amendmentTypeContainers.length; i++) {
+//                amendmentTypeContainers[i].addEventListener('click', changeAmendmentTypeHandler, false);
+//                amendmentTypeContainers[i].addEventListener('mouseover', removeOpacityHandler, false);
+//                amendmentTypeContainers[i].addEventListener('mouseleave', addOpacityHandler, false);
+//           }
+        }
+
+        var changeAmendmentTypeHandler = function(elem) {
+            var currentType = elem.getAttribute("data-type");
+            if (selectedType === currentType) {
+                return;
+            }
+            selectedType = currentType;
+            var selectedTypeInput = document.getElementsByClassName("selectedAmendmentType");
+            selectedTypeInput[0].value = selectedType;
+
+            var amendmentTypeContainers = document.getElementsByClassName("tableContainer");
+            for (var i = 0; i < amendmentTypeContainers.length; i++) {
+                amendmentTypeContainers[i].style.opacity = "0.5";
+                //amendmentTypeContainers[i].childNodes[1].style.height = "";
+                //amendmentTypeContainers[i].childNodes[1].style.width = "";
+                amendmentTypeContainers[i].children[0].style.background = "none";
+            }
+            elem.style.opacity = "1";
+
+            //elem.childNodes[1].style.height = "100%";
+            //elem.childNodes[1].style.width = "2%";
+            elem.children[0].style.background = "green";
+
+            if (nextButton) {
+                nextButton.disabled = false;
+                nextButton.classList.remove("btnDisabled");
+            }
+        };
+
+        var removeOpacityHandler = function(elem) {
+            var currentType = elem.getAttribute("data-type");
+            if (selectedType !== currentType) {
+                elem.style.opacity = "1";
+            }
+        };
+
+        var addOpacityHandler = function(elem) {
+            var currentType = elem.getAttribute("data-type");
+            if (selectedType !== currentType) {
+                elem.style.opacity = "0.5";
+            }
+        };
+        </script>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!isOneImage}">
+        <style>
+            .tableContainer {
+                border: none !important;
+                opacity: 1 !important;
+            }
+        </style>
+        <script>
+            var changeAmendmentTypeHandler = function(elem) {};
+            var removeOpacityHandler = function(elem) {};
+            var addOpacityHandler = function(elem) {};
+        </script>
+    </apex:outputPanel>
+
+    <apex:inputHidden id="selectedAmendmentType" html-class="selectedAmendmentType" value="{!selectedType}" html-onchange="console.log('onchange input');"/>
+
+    <apex:variable var="isSelectedTypeBlank" value="{!selectedType == '' || isRenderAllTypes}"/>
+
+    <apex:variable var="isAmendOnRenewal" value="{!selectedType == 'AMEND_ON_RENEWAL'}"/>
+    <apex:outputPanel layout="block" styleClass="tableContainer" html-data-type="AMEND_ON_RENEWAL"
+                      rendered="{!OR(isSelectedTypeBlank, isAmendOnRenewal)}" style="{!IF(AND(isRenderAllTypes, isAmendOnRenewal), 'opacity: 1', '')}"
+                      onclick="changeAmendmentTypeHandler(this);" onmouseover="removeOpacityHandler(this);" html-onmouseleave="addOpacityHandler(this);">
+        <div class="strip" style="{!IF(AND(isRenderAllTypes, isAmendOnRenewal), 'background: green', '')}"/>
+        <div class="name">Update subscription <b>upon</b> Renewal</div>
+        <div class="table">
+            <div class="row first">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-yellow on-renew"/>
+            </div>
+            <div class="row">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-green on-renew"/>
+            </div>
+            <div class="row last">
+                <div class="cell first"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell last"/>
+                <div class="cell-pseudo"/>
+            </div>
+            <div class="row bottom">
+                <div class="cell without-border"/>
+                <div class="cell without-border"/>
+                <div class="cell without-border"/>
+                <div class="cell without-border"/>
+                <div class="cell without-border txt leftTxt">Effective Date</div>
+                <div class="cell without-border"/>
+            </div>
+        </div>
+        <c:AmendmentLegend />
+    </apex:outputPanel>
+
+    <apex:variable var="isAmendBeforeRenew" value="{!selectedType == 'AMEND_BEFORE_RENEWAL'}"/>
+    <apex:outputPanel layout="block" styleClass="tableContainer" html-data-type="AMEND_BEFORE_RENEWAL"
+                      rendered="{!OR(isSelectedTypeBlank, isAmendBeforeRenew)}" style="{!IF(AND(isRenderAllTypes, isAmendBeforeRenew), 'opacity: 1', '')}"
+                      onclick="changeAmendmentTypeHandler(this);" onmouseover="removeOpacityHandler(this);" html-onmouseleave="addOpacityHandler(this);">
+        <div class="strip" style="{!IF(AND(isRenderAllTypes, isAmendBeforeRenew), 'background: green', '')}"/>
+        <div class="name">Change subscription <b>before</b> Renewal</div>
+        <div class="table">
+            <div class="row first">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell light-yellow"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-yellow before-renew-renew"/>
+            </div>
+            <div class="row">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-green before-renew"/>
+            </div>
+            <div class="row last">
+                <div class="cell first"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell last"/>
+                <div class="cell-pseudo before-renew"/>
+            </div>
+            <div class="row bottom">
+                <div class="cell without-border txt rightTxt">Effective Date</div>
+                <div class="cell without-border"/>
+                <div class="cell without-border txt leftTxt">Renewal Date</div>
+                <div class="cell without-border"/>
+            </div>
+        </div>
+        <c:AmendmentLegend />
+    </apex:outputPanel>
+
+    <apex:variable var="isAmendBeforeRenewAndRenew" value="{!selectedType == 'AMEND_BEFORE_RENEWAL_AND_RENEW'}"/>
+    <apex:outputPanel layout="block" styleClass="tableContainer" html-data-type="AMEND_BEFORE_RENEWAL_AND_RENEW"
+                      rendered="{!OR(isSelectedTypeBlank, isAmendBeforeRenewAndRenew)}" style="{!IF(AND(isRenderAllTypes, isAmendBeforeRenewAndRenew), 'opacity: 1', '')}"
+                      onclick="changeAmendmentTypeHandler(this);" onmouseover="removeOpacityHandler(this);" html-onmouseleave="addOpacityHandler(this);">
+        <div class="strip" style="{!IF(AND(isRenderAllTypes, isAmendBeforeRenewAndRenew), 'background: green', '')}"/>
+        <div class="name">Change subscription <b>before</b> Renewal &amp; Renew</div>
+        <div class="table">
+            <div class="row first">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell light-yellow"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-yellow before-renew-renew"/>
+            </div>
+            <div class="row">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-green before-renew-renew"/>
+            </div>
+            <div class="row last">
+                <div class="cell first"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell last"/>
+                <div class="cell-pseudo before-renew"/>
+            </div>
+            <div class="row bottom">
+                <div class="cell without-border txt rightTxt">Effective Date</div>
+                <div class="cell without-border"/>
+                <div class="cell without-border txt leftTxt">Renewal Date</div>
+                <div class="cell without-border"/>
+            </div>
+        </div>
+        <c:AmendmentLegend />
+    </apex:outputPanel>
+
+    <apex:variable var="isStartNewBillingCycle" value="{!selectedType == 'START_NEW_BILLING_CYCLE'}"/>
+    <apex:outputPanel layout="block" styleClass="tableContainer" html-data-type="START_NEW_BILLING_CYCLE"
+                      rendered="{!OR(isSelectedTypeBlank, isStartNewBillingCycle)}" style="{!IF(AND(isRenderAllTypes, isStartNewBillingCycle), 'opacity: 1', '')}"
+                      onclick="changeAmendmentTypeHandler(this);" onmouseover="removeOpacityHandler(this);" html-onmouseleave="addOpacityHandler(this);">
+
+        <div class="strip" style="{!IF(AND(isRenderAllTypes, isStartNewBillingCycle), 'background: green', '')}"/>
+        <div class="name">Start new billing cycle</div>
+        <div class="table">
+            <div class="row first">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell light-yellow"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-yellow before-renew-renew"/>
+            </div>
+            <div class="row">
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell-green before-renew-renew new-cycle"/>
+            </div>
+            <div class="row last">
+                <div class="cell first"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell"/>
+                <div class="cell last"/>
+                <div class="cell-pseudo before-renew"/>
+            </div>
+            <div class="row bottom">
+                <div class="cell without-border txt rightTxt">Effective Date</div>
+                <div class="cell without-border"/>
+                <div class="cell without-border txt leftTxt">Renewal Date</div>
+                <div class="cell without-border"/>
+            </div>
+        </div>
+        <c:AmendmentLegend />
+    </apex:outputPanel>
+</apex:component>

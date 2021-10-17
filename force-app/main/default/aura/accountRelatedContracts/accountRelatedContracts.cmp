@@ -1,0 +1,18 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="AccountRelatedController" extends="c:abstractRelatedRecords">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <lightning:datatable
+        keyField="id"
+        columns="{!v.columns}"
+        data="{!v.data}"
+        hideCheckboxColumn="true"
+        defaultSortDirection="{!v.defaultSortDirection}"
+        sortedDirection="{!v.sortDirection}"
+        sortedBy="{!v.sortedBy}"
+        onsort="{!c.handleSort}">
+    </lightning:datatable>
+    
+    <div class="slds-align_absolute-center slds-m-top_medium">
+        <c:pagination currentPageNumber="{!v.pageNumber}" maxPageNumber="{!v.maxPage}" />
+    </div>
+</aura:component>

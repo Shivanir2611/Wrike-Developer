@@ -1,0 +1,336 @@
+<aura:component controller="CPQQuoteController" implements="flexipage:availableForRecordHome,force:hasRecordId">
+
+    <aura:attribute name="quote" type="CPQQuote"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="makePrimaryConfirmation" type="Boolean" default="false"/>
+    <aura:attribute name="draftConfirmation" type="Boolean" default="false"/>
+    <aura:attribute name="deleteConfirmation" type="Boolean" default="false"/>
+    <aura:attribute name="cancelQuoteConfirmation" type="Boolean" default="false"/>
+    <aura:attribute name="subscription" type="Object"/>
+    <aura:attribute name="existingPrimaryQuoteId" type="Id"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <lightning:empApi aura:id="empApi"/>
+    <lightning:navigation aura:id="navService"/>
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <force:recordData aura:id="recordHandler"
+                      recordId="{!v.recordId}"
+                      fields="Id"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler event="force:refreshView" action="{!c.init}" />
+
+    <aura:if isTrue="{!v.preloader}">
+        <lightning:spinner variant="brand" class="slds-is-fixed"/>
+    </aura:if>
+
+    <aura:if isTrue="{!v.quote.quoteBlocked}">
+        <div style="margin-bottom: 1rem">
+            <ui:message severity="error" class="slds-m-horizontal--none slds-p-horizontal--large slds-p-vertical--medium">
+                    <b>
+                        <aura:if isTrue="{!v.quote.blockedQuoteMessage != null}">
+                            {!v.quote.blockedQuoteMessage}
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.renewalQuoteExists}">
+                            There is another
+                            <a target="_blank" href="{!'/lightning/r/SBQQ__Quote__c/'+ v.quote.existingRenewalQuoteId + '/view'}">renewal quote</a>
+                            for the same contract under a different opportunity. Please move other quotes renewing the same
+                            contract to the Draft status if you want to proceed with this one.
+                        </aura:if>
+                    </b>
+            </ui:message>
+        </div>
+    </aura:if>
+
+    <lightning:card class="highlights slds-clearfix slds-page-header slds-page-header_record-home slds-p-around--none">
+        <aura:set attribute="title">
+            <div class="slds-grid slds-p-around--x-small">
+                <div class="slds-media">
+                    <lightning:icon iconName="standard:webcart" size="medium"/>
+                </div>
+                <div class="slds-media__body slds-m-left--small">
+                    <h1>
+                        <div class="slds-line-height_reset" style="font-size: 13px; color: rgb(62, 62, 60);">Quote</div>
+                        <div class="slds-page-header__title">{!v.quote.name}</div>
+                    </h1>
+                </div>
+            </div>
+        </aura:set>
+        <aura:set attribute="actions">
+            <div class="slds-grid slds-p-around--x-small">
+                <aura:if isTrue="{!not(v.quote.quoteBlocked)}">
+                    <aura:if isTrue="{!v.quote.isDraft == true}">
+                        <lightning:buttonGroup>
+                            <lightning:button label="Edit Products" onclick="{!c.openLineEditor}"/>
+                            <lightning:button label="Custom Billing Schedule" onclick="{!c.editCustomBilling}"/>
+                        </lightning:buttonGroup>
+                    </aura:if>
+                    <lightning:buttonGroup>
+                        <aura:if isTrue="{!v.quote.isDraft || v.quote.isPendingApproval || v.quote.isApproved}">
+                            <lightning:button label="Bill To/Ship To" onclick="{!c.openBillToShipToForm}"/>
+                            <aura:if isTrue="{!v.quote.wrikeAccountId == null}">
+                                <lightning:button label="Get Wrike Account" onclick="{!c.openWrikeAccountRegistration}"/>
+                            </aura:if>
+                            <lightning:button disabled="{!v.quote.previewMessage != null}"
+                                              onclick="{!c.generatePreview}">
+                                Preview
+                                <aura:if isTrue="{!v.quote.previewMessage}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.previewMessage}"/>
+                                </aura:if>
+                            </lightning:button>
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.isApproved || v.quote.isRejected || v.quote.isPendingApproval}">
+                            <lightning:button label="Back to Draft" onclick="{!c.enableDraftConfirmation}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!and(not(v.quote.primary), or(v.quote.isDraft, or(v.quote.isPendingApproval, or(v.quote.isApproved, v.quote.isDocumentGenerated))))}">
+                            <lightning:button label="Make Primary" onclick="{!c.showMakePrimaryConfirmation}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.isApproved}">
+                            <lightning:button disabled="{!v.quote.generateDocumentMessage != null}"
+                                              onclick="{!c.generateDocument}">
+                                Generate Document
+                                <aura:if isTrue="{!v.quote.generateDocumentMessage}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.generateDocumentMessage}"/>
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.quote.generateDocumentMessage == null, v.quote.generateDocumentWarningMessage != null)}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.generateDocumentWarningMessage}"/>
+                                </aura:if>
+                            </lightning:button>
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.isDocumentGenerated}">
+                            <lightning:button onclick="{!c.sendViaDocuSign}"
+                                              disabled="{!v.quote.sendViaDocuSignMessage != null}">
+                                Send via DocuSign
+                                <aura:if isTrue="{!v.quote.sendViaDocuSignMessage}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.sendViaDocuSignMessage}"/>
+                                </aura:if>
+                            </lightning:button>
+                            <lightning:button label="Delete Document" onclick="{!c.deleteDocument}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!or(v.quote.isDocumentGenerated, v.quote.isDocuSignSigned)}">
+                            <lightning:button onclick="{!c.createOrder}"
+                                              disabled="{!v.quote.createOrderMessage != null}">
+                                Create Order
+                                <aura:if isTrue="{!v.quote.createOrderMessage}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.createOrderMessage}"/>
+                                </aura:if>
+                            </lightning:button>
+                        </aura:if>
+                        <aura:if isTrue="{!and(v.quote.isDocuSignSigned, v.quote.isRenewal)}">
+                            <lightning:button label="Cancel Quote" onclick="{!c.enableCancelQuoteConfirmation}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.isDocuSignSent}">
+                            <lightning:button label="Cancel DocuSign" onclick="{!c.cancelDocuSign}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.quote.isDocuSignDeclined}">
+                            <lightning:button label="Back" onclick="{!c.backToDocumentGeneratedStep}"/>
+                        </aura:if>
+                    </lightning:buttonGroup>
+                    <lightning:buttonGroup>
+                        <aura:if isTrue="{!v.quote.isDraft}">
+                            <lightning:button disabled="{!v.quote.startApprovalMessage != null}"
+                                              onclick="{!c.startApproval}">
+                                Start Approval
+                                <aura:if isTrue="{!v.quote.startApprovalMessage}">
+                                    <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small warning-icon"
+                                                        iconName="utility:warning"
+                                                        content="{!v.quote.startApprovalMessage}"/>
+                                </aura:if>
+                            </lightning:button>
+                            <lightning:buttonMenu alternativeText="Approval Menu"
+                                                  class="slds-button_last"
+                                                  onselect="{!c.onApprovalMenuSelect}"
+                                                  disabled="{!v.quote.startApprovalMessage != null}"
+                                                  menuAlignment="right"
+                                                  variant="border-filled">
+                                <lightning:menuItem value="previewApproval" label="Preview Approval"/>
+                            </lightning:buttonMenu>
+                        </aura:if>
+                    </lightning:buttonGroup>
+                </aura:if>
+                <aura:if isTrue="{!not(v.quote.isDraft)}">
+                    <lightning:buttonGroup>
+                        <lightning:button label="View Products" onclick="{!c.openLineEditor}"/>
+                    </lightning:buttonGroup>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.addPartnerAllowed}">
+                    <lightning:buttonGroup>
+                        <lightning:button label="Add Partner" onclick="{!c.openPartnerSelection}"/>
+                    </lightning:buttonGroup>
+                </aura:if>
+                <aura:if isTrue="{!and(not(v.quote.isDocuSignSigned), not(v.quote.isOrdered))}">
+                    <lightning:buttonGroup>
+                        <lightning:button label="Clone" onclick="{!c.cloneQuote}"/>
+                    </lightning:buttonGroup>
+                    <aura:if isTrue="{!v.quote.deletionAllowed}">
+                        <lightning:buttonGroup>
+                            <lightning:button label="Delete" onclick="{!c.enableDeleteConfirmation}"/>
+                        </lightning:buttonGroup>
+                    </aura:if>
+                </aura:if>
+            </div>
+        </aura:set>
+
+        <div class="slds-p-horizontal--large slds-p-vertical--medium slds-color__background_gray-1">
+            <lightning:layout>
+                <lightning:layoutItem>
+                    <div class="slds-p-horizontal--large slds-p-left--none">
+                        <p class="slds-text-title">Account</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                            <a href="{!'/lightning/r/Account/'+ v.quote.accountId + '/view'}">{!v.quote.accountName}</a>
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem>
+                    <div class="slds-p-horizontal--large">
+                        <p class="slds-text-title">Opportunity</p>
+                        <p class="field-text slds-truncate" style="max-width: 170px">
+                            <a href="{!'/lightning/r/Opportunity/'+ v.quote.opportunityId + '/view'}">{!v.quote.opportunityName}</a>
+                        </p>
+                    </div>
+                </lightning:layoutItem>
+                <aura:if isTrue="{!v.quote.startDate}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">Start Date</p>
+                            <p class="field-text">{!v.quote.startDate}</p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.endDate}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">End Date</p>
+                            <p class="field-text">{!v.quote.endDate}</p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.subscriptionTotal != null}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">Subscription Total</p>
+                            <p class="field-text"><lightning:formattedNumber value="{!v.quote.subscriptionTotal}"
+                                                                             currencyCode="{!v.quote.currencyCode}"
+                                                                             style="currency"
+                                                                             currencyDisplayAs="symbol"/></p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.oneTimeTotal != null}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">One-time Total</p>
+                            <p class="field-text"><lightning:formattedNumber value="{!v.quote.oneTimeTotal}"
+                                                                             currencyCode="{!v.quote.currencyCode}"
+                                                                             style="currency"
+                                                                             currencyDisplayAs="symbol"/></p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.deltaMrr != null}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">Delta MRR</p>
+                            <p class="field-text"><lightning:formattedNumber value="{!v.quote.deltaMrr}"
+                                                                             currencyCode="{!v.quote.currencyCode}"
+                                                                             style="currency"
+                                                                             currencyDisplayAs="symbol"/></p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.orderId}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large">
+                            <p class="slds-text-title">Order</p>
+                            <p class="field-text">
+                                <aura:if isTrue="{!v.quote.showOrderLink}">
+                                    <a href="{!'/lightning/r/Order/'+ v.quote.orderId + '/view'}">{!v.quote.orderNumber}</a>
+                                    <aura:set attribute="else">
+                                            {!v.quote.orderNumber}
+                                    </aura:set>
+                                </aura:if>
+                            </p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.quote.pdfId}">
+                    <lightning:layoutItem>
+                        <div class="slds-p-horizontal--large" style="height: 100%; display: table">
+                            <p style="font-size: 24px; display: table-cell" class="slds-align-middle">
+                                <a target="_blank" href="{!v.quote.pdfLink}">Quote PDF</a>
+                            </p>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+        </div>
+    </lightning:card>
+
+    <div class="slds-card slds-">
+        <div class="progress-card slds-card__body slds-p-horizontal--large readonly">
+            <lightning:progressIndicator currentStep="{!v.quote.status}" type="path" variant="base">
+                <aura:iteration items="{!v.quote.statusPicklistValues}" var="step">
+                    <lightning:progressStep class="{!if(
+                                                    step[0] == 'Rejected' || step[0] == 'DocuSignDeclined' || step[0] == 'Cancelled',
+                                                    'slds-is-lost',
+                                                    if(and(step[0] == 'Ordered', v.quote.isOrdered), 'slds-is-won', '')
+                                            )}"
+                                            value="{!step[0]}"
+                                            label="{!step[1]}"/>
+                </aura:iteration>
+            </lightning:progressIndicator>
+        </div>
+    </div>
+
+    <aura:if isTrue="{!v.errorMessage}">
+        <div style="margin-top: 1rem">
+            <ui:message title="Error" severity="error">
+                    {!v.errorMessage}
+            </ui:message>
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!v.draftConfirmation}">
+        <c:confirmationDialog
+                onConfirm="{!c.changeStatusToDraft}"
+                onCancel="{!c.disableDraftConfirmation}">
+            Please confirm that you want to move the Quote to Draft status.
+            You'll need to go through the Approval process again.
+        </c:confirmationDialog>
+    </aura:if>
+    <aura:if isTrue="{!v.deleteConfirmation}">
+        <c:confirmationDialog
+                onConfirm="{!c.delete}"
+                onCancel="{!c.disableDeleteConfirmation}">
+            Please confirm that you want to delete the Quote.
+        </c:confirmationDialog>
+    </aura:if>
+    <aura:if isTrue="{!v.cancelQuoteConfirmation}">
+        <c:confirmationDialog
+                onConfirm="{!c.cancelQuote}"
+                onCancel="{!c.disableCancelQuoteConfirmation}">
+            DocuSign is signed, the quote will be cancelled. Please, note that after cancelling the quote it can't be restored.
+        </c:confirmationDialog>
+    </aura:if>
+    <aura:if isTrue="{!v.makePrimaryConfirmation}">
+        <c:confirmationDialog
+                onConfirm="{!c.makePrimary}"
+                onCancel="{!c.disableMakePrimaryConfirmation}">
+            Please confirm that you want to make this quote primary.
+            <a href="{!'/lightning/r/SBQQ__Quote__c/'+ v.existingPrimaryQuoteId + '/view'}">The current primary quote</a>
+            will be reset.
+        </c:confirmationDialog>
+    </aura:if>
+
+    <a id="redirect" style="visibility: hidden" target="_blank"></a>
+</aura:component>

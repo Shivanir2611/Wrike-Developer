@@ -1,0 +1,175 @@
+<apex:component >
+    <apex:attribute name="preview" type="InvoicePreview" required="true" description="Generated quote preview."/>
+    <apex:attribute name="quoteBundle" type="QuoteBundle" required="true" description="Quote Bundle."/>
+    <apex:attribute name="quote" type="WrikeQuote" required="true" description="Wrike Quote object"/>
+    <apex:attribute name="noListPrice" type="Boolean" default="false" description="Hide list price"/>
+    <apex:attribute name="tableClass" type="String" required="false" default="product-table" description="Css style class for table."/>
+    <apex:attribute name="headerRowClass" type="String" required="false" default="" description="Css style class for table header."/>
+    <apex:attribute name="dataRowClass" type="String" required="false" default="" description="Css style class for table rows."/>
+    <table class="{!tableClass}" style="border-collapse:collapse">
+        <thead>
+            <tr class="{!headerRowClass}">
+                <th style="width:45%">SUBSCRIPTION</th>
+                <th>QTY</th>
+                <th style="display:{!IF(noListPrice, 'none', '')}">LIST RATE</th>
+                <th>EFFECTIVE RATE</th>
+                <th>TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+        <apex:repeat var="lineItem" value="{!quoteBundle.recurrentItems}">
+            <apex:variable var="firstRecurrentItemAdded" value="{!quoteBundle.recurrentItemsAdded > 0 && lineItem == quoteBundle.recurrentItems[0]}"/>
+            <apex:variable var="firstRecurrentItemRemoved" value="{!quoteBundle.recurrentItemsRemoved > 0 && lineItem == quoteBundle.recurrentItems[quoteBundle.recurrentItemsAdded]}"/>
+            <tr class="{!dataRowClass}">
+                <td style="width: 45%">
+                    <c:zuoraQuoteProductDetails lineItem="{!lineItem}"/>
+                </td>
+                <td style="{!IF(lineItem.removed,'color: #FF0000','')}">
+                    <apex:outputText rendered="{!lineItem.removed}" value="-"/>{!lineItem.quantity}
+                </td>
+                <td style="display:{!IF(NOT(noListPrice) && firstRecurrentItemAdded, '', 'none')}"
+                    rowspan="{!quoteBundle.recurrentItemsAdded}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     rendered="{!NOT(noListPrice)}"
+                                     value="{!quoteBundle.recurrentListRateAdded}"/>/{!lineItem.billingPeriod}
+                </td>
+                <td style="display:{!IF(NOT(noListPrice) && firstRecurrentItemRemoved, '', 'none')}"
+                    rowspan="{!quoteBundle.recurrentItemsRemoved}">-</td>
+                <td style="display:{!IF(firstRecurrentItemAdded, '', 'none')}"
+                    rowspan="{!quoteBundle.recurrentItemsAdded}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.recurrentEffectiveRateAdded}"/>/{!lineItem.billingPeriod}
+                </td>
+                <td style="display:{!IF(firstRecurrentItemRemoved, '', 'none')};color:#FF0000"
+                    rowspan="{!quoteBundle.recurrentItemsRemoved}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.recurrentEffectiveRateRemoved}"/>/{!lineItem.billingPeriod}
+                </td>
+                <td style="display:{!IF(firstRecurrentItemAdded, '', 'none')}"
+                    rowspan="{!quoteBundle.recurrentItemsAdded}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.recurrentTotalPriceAdded}"/>
+                </td>
+                <td style="color:#FF0000;display:{!IF(firstRecurrentItemRemoved, '', 'none')}"
+                    rowspan="{!quoteBundle.recurrentItemsRemoved}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.recurrentTotalPriceRemoved}"/>
+                </td>
+            </tr>
+        </apex:repeat>
+        <apex:repeat var="lineItem" value="{!quoteBundle.renewalItems}">
+            <apex:variable var="firstRenewalItem" value="{!NOT(quoteBundle.renewalItems.empty) && lineItem == quoteBundle.renewalItems[0]}"/>
+            <tr>
+                <td style="width: 45%">
+                    <c:zuoraQuoteProductDetails lineItem="{!lineItem}"/>
+                </td>
+                <td>
+                    <apex:outputText rendered="{!lineItem.removed}" value="-"/>{!lineItem.quantity}
+                </td>
+                <td style="display:{!IF(NOT(noListPrice) && firstRenewalItem, '', 'none')}" rowspan="{!quoteBundle.renewalItems.size}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     rendered="{!NOT(noListPrice)}"
+                                     value="{!quoteBundle.renewalListRate}"/>/{!lineItem.billingPeriod}
+                </td>
+                <td style="display:{!IF(firstRenewalItem, '', 'none')}" rowspan="{!quoteBundle.renewalItems.size}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.renewalEffectiveRate}"/>/{!lineItem.billingPeriod}
+                </td>
+                <td style="display:{!IF(firstRenewalItem, '', 'none')}" rowspan="{!quoteBundle.renewalItems.size}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.renewalTotalPrice}"/>
+                </td>
+            </tr>
+        </apex:repeat>
+        <apex:outputPanel layout="none" rendered="{!NOT(quoteBundle.recurrentItems.empty)}">
+            <tr>
+                <td colspan="{!IF(noListPrice, '4', '5')}" style="font-weight:bold;border:0;text-align:right;padding-right:2px;">
+                    Subscription Sub Total, {!quote.currencyCode}:
+                    &nbsp;&nbsp;&nbsp;
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.recurrentTotalPrice}"/>
+                </td>
+            </tr>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!NOT(quoteBundle.recurrentItems.empty) && NOT(quoteBundle.oneTimeItems.empty)}">
+            <tr>
+                <th>ONE-TIME FEES</th>
+                <th>QTY</th>
+                <th style="display:{!IF(noListPrice, 'none', '')}">LIST PRICE</th>
+                <th>EFFECTIVE PRICE</th>
+                <th>TOTAL</th>
+            </tr>
+        </apex:outputPanel>
+        <apex:repeat var="lineItem" value="{!quoteBundle.oneTimeItems}">
+            <apex:variable var="firstOneTimeItem" value="{!lineItem == quoteBundle.oneTimeItems[0]}"/>
+            <tr class="{!dataRowClass}">
+                <td style="width: 45%">
+                    {!lineItem.items[0].productName}<br/>
+                    One-Time<br/>
+                    <apex:outputPanel rendered="{!lineItem.items[0].productServiceType == 'Implementation'}">
+                    {!lineItem.items[0].productRatePlanName}<br/>
+                    </apex:outputPanel>
+                    <c:dateField value="{!lineItem.serviceStartDate}"/>
+                </td>
+                <td>{!lineItem.quantity}</td>
+                <td style="display:{!IF(firstOneTimeItem && NOT(noListPrice), '', 'none')}"
+                    rowspan="{!quoteBundle.oneTimeItems.size}">
+                    <c:currencyField rendered="{!NOT(noListPrice)}"
+                                     currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.oneTimeListPrice}"/>
+                </td>
+                <td style="display:{!IF(firstOneTimeItem, '', 'none')}"
+                    rowspan="{!quoteBundle.oneTimeItems.size}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.oneTimeEffectivePrice}"/>
+                </td>
+                <td style="display:{!IF(firstOneTimeItem, '', 'none')}"
+                    rowspan="{!quoteBundle.oneTimeItems.size}">
+                    <c:currencyField currency="{!quote.currencyCode}"
+                                     value="{!quoteBundle.oneTimeEffectivePrice}"/>
+                </td>
+            </tr>
+        </apex:repeat>
+        <tr>
+            <td colspan="{!IF(noListPrice, '4', '5')}" style="font-weight:bold;border:0;padding:0">
+                <table style="float:right;margin-top:4pt;text-align: right">
+                    <tr style="display:{!IF(quoteBundle.oneTimeItems.size > 0,'','none')}">
+                        <td style="border:0;padding:0">
+                            One Time Fee Sub Total, {!quote.currencyCode}:
+                            &nbsp;&nbsp;&nbsp;
+                        </td>
+                        <td style="border:0;padding:0 0 0 0">
+                            <c:currencyField currency="{!quote.currencyCode}"
+                                             value="{!quoteBundle.oneTimeEffectivePrice}"/>
+                        </td>
+                    </tr>
+                    <tr style="display:{!IF(quoteBundle.partnerCommissionItem != null,'','none')}">
+                        <td style="border:0;padding:0">
+                            Partner Commission, {!quote.currencyCode}:
+                            &nbsp;&nbsp;&nbsp;
+                        </td>
+                        <td style="border:0;padding:0">
+                            <c:currencyField currency="{!quote.currencyCode}"
+                                             value="{!quoteBundle.partnerCommissionItem.oneTimeEffectivePrice}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border:0;padding:8px 0 0 0">
+                            {!IF(quote.isSubscription, 'Initial Payment Total', 'Order Total')}, {!quote.currencyCode}:
+                            &nbsp;&nbsp;&nbsp;
+                        </td>
+                        <td style="border:0;padding:8px 0 0 0">
+                            <c:currencyField rendered="{!quote.isSubscription}"
+                                             currency="{!quote.currencyCode}"
+                                             value="{!quoteBundle.initialPaymentTotal}"/>
+                            <c:currencyField rendered="{!NOT(quote.isSubscription)}"
+                                             currency="{!quote.currencyCode}"
+                                             value="{!preview.totalChargeAmount}"/>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</apex:component>

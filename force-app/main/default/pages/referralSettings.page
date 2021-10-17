@@ -1,0 +1,28 @@
+<apex:page controller="SalesSettingsController">
+    <br/>
+    <br/>
+    <h2 style="font-size:1.8em;color:#404040">Referral Codes</h2>
+    <br/>
+    <apex:pagemessages />
+    <br/>    
+    <apex:form >
+        <apex:pageBlock mode="inlineEdit">
+            <apex:pageBlockButtons >
+                <apex:commandButton id="saveButton" action="{!save}" value="Save" style="display:none"/>
+                <apex:commandButton id="cancelButton" action="{!cancel}" value="Cancel" style="display:none"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1" collapsible="false">
+                <apex:pageBlockTable value="{!users}" var="user">
+                    <apex:column headerValue="Referral Code" width="80px">
+                        <apex:outputField value="{!user.settings.Referral_Code__c}" style="width:100%">
+                            <apex:inlineEditSupport event="ondblClick" showOnEdit="saveButton,cancelButton" />
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Name" value="{!user.Name}"/>
+                    <apex:column headerValue="Profile" value="{!user.profile}"/>
+                    <apex:column headerValue="Role" value="{!user.role}"/>
+                </apex:pageBlockTable>
+            </apex:pageBlockSection> 
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

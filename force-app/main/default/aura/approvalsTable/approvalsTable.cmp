@@ -1,0 +1,140 @@
+<aura:component controller="CPQApprovalsTableController" implements="flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride">
+    <aura:attribute name="userInfo" type="Object"/>
+    <aura:attribute name="approvals" type="CPQApproval[]" default="[]"/>
+    <aura:attribute name="userApprovals" type="CPQApproval[]"/>
+    <aura:attribute name="allApprovals" type="CPQApproval[]"/>
+    <aura:attribute name="hasApprovals" type="Boolean" default="false"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="showOnlyUserApprovals" type="Boolean"/>
+
+    <lightning:navigation aura:id="navService"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <aura:if isTrue="{!v.preloader}">
+        <lightning:spinner variant="brand" class="slds-is-fixed"/>
+    </aura:if>
+
+    <ui:scrollerWrapper>
+        <aura:if isTrue="{!v.errorMessage}">
+            <ui:message title="Error" severity="error">
+                {!v.errorMessage}
+            </ui:message>
+        </aura:if>
+
+        <aura:if isTrue="{!not(empty(v.approvals))}">
+            <lightning:card class="highlights slds-clearfix slds-page-header slds-page-header_record-home slds-p-around--none">
+                <aura:set attribute="title">
+                    <div style="display: flex">
+                        <div class="slds-media">
+                            <lightning:icon iconName="standard:approval" size="small"/>
+                        </div>
+                        <div class="slds-media__body slds-m-left--small slds-align-middle" style="font-size: 1rem; font-weight: bold;">
+                            Approvals
+                        </div>
+                    </div>
+                </aura:set>
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{!not(empty(v.userApprovals))}">
+                        <aura:if isTrue="{!$Browser.formFactor == 'DESKTOP'}">
+                            <lightning:buttonGroup>
+                                <aura:if isTrue="{!v.showOnlyUserApprovals}">
+                                    <lightning:button label="View All" onclick="{!c.viewAllApprovals}"/>
+                                </aura:if>
+                                <aura:if isTrue="{!not(v.showOnlyUserApprovals)}">
+                                    <lightning:button label="My Approvals" onclick="{!c.viewUserApprovals}"/>
+                                </aura:if>
+                            </lightning:buttonGroup>
+                            <lightning:buttonGroup>
+                                <aura:if isTrue="{!v.hasApprovals}">
+                                    <lightning:button label="Reject" onclick="{!c.reject}"/>
+                                    <lightning:button label="Approve" variant="brand" onclick="{!c.approve}"/>
+                                </aura:if>
+                            </lightning:buttonGroup>
+                        </aura:if>
+                        <aura:if isTrue="{!$Browser.formFactor == 'PHONE'}">
+                            <aura:if isTrue="{!v.hasApprovals}">
+                                <lightning:buttonGroup>
+                                    <lightning:button label="Approve" variant="brand" onclick="{!c.approve}"/>
+                                    <lightning:buttonMenu alternativeText="Approval Menu"
+                                                          class="slds-button_last"
+                                                          onselect="{!c.onApprovalMenuSelect}"
+                                                          menuAlignment="right"
+                                                          variant="border-filled">
+                                        <lightning:menuItem value="reject" label="Reject"/>
+                                        <aura:if isTrue="{!v.showOnlyUserApprovals}">
+                                            <lightning:menuItem label="View All" value="viewAllApprovals"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!not(v.showOnlyUserApprovals)}">
+                                            <lightning:menuItem label="My Approvals" value="viewUserApprovals"/>
+                                        </aura:if>
+                                    </lightning:buttonMenu>
+                                </lightning:buttonGroup>
+                            </aura:if>
+                            <aura:if isTrue="{!not(v.hasApprovals)}">
+                                <aura:if isTrue="{!v.showOnlyUserApprovals}">
+                                    <lightning:button label="View All" onclick="{!c.viewAllApprovals}"/>
+                                </aura:if>
+                                <aura:if isTrue="{!not(v.showOnlyUserApprovals)}">
+                                    <lightning:button label="My Approvals" onclick="{!c.viewUserApprovals}"/>
+                                </aura:if>
+                            </aura:if>
+                        </aura:if>
+                    </aura:if>
+                </aura:set>
+                <table class="slds-table slds-table--bordered slds-table--striped">
+                    <thead>
+                    <tr>
+                        <aura:if isTrue="{!$Browser.formFactor == 'DESKTOP'}">
+                            <th>#</th>
+                            <th>Approval Chain</th>
+                            <th>Approval Rule</th>
+                            <th>Approval Step</th>
+                            <th>Status</th>
+                            <th>Approver</th>
+                            <th>Assigned To</th>
+                            <th>Approved By</th>
+                            <th>Comments</th>
+                        </aura:if>
+                        <aura:if isTrue="{!$Browser.formFactor == 'PHONE'}">
+                            <th>Approval Rule</th>
+                        </aura:if>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <aura:iteration items="{!v.approvals}" var="approval" indexVar="index">
+                        <tr>
+                            <aura:if isTrue="{!$Browser.formFactor == 'DESKTOP'}">
+                                <td>{!index + 1}</td>
+                                <td>{!approval.chainName}</td>
+                                <td>{!approval.ruleName}</td>
+                                <td>{!approval.step}</td>
+                                <td>{!approval.status}</td>
+                                <td>
+                                    {!approval.approverName}
+                                    <aura:if isTrue="{!approval.approverGroupId != null}">
+                                        <lightning:helptext class="box-shadow-none info-icon slds-p-left--xx-small"
+                                                            iconName="utility:info"
+                                                            content="{!approval.approverGroupMemberNames}"/>
+                                    </aura:if>
+                                </td>
+                                <td>{!approval.assignedToName}</td>
+                                <td>{!approval.approvedByName}</td>
+                                <td style="max-width: 300px !important;"
+                                    data-tooltip="{!approval.comments}"
+                                    class="{!if(approval.comments != null, 'comments-tooltip', '')}">
+                                    <p class="slds-truncate">{!approval.comments}</p>
+                                </td>
+                            </aura:if>
+                            <aura:if isTrue="{!$Browser.formFactor == 'PHONE'}">
+                                <td style="font-size: 13px;">{!approval.ruleName}</td>
+                            </aura:if>
+                        </tr>
+                    </aura:iteration>
+                    </tbody>
+                </table>
+            </lightning:card>
+        </aura:if>
+    </ui:scrollerWrapper>
+</aura:component>

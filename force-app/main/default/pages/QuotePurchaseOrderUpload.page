@@ -1,0 +1,22 @@
+<apex:page controller="QuotePurchaseOrderUploadController" showHeader="false" showChat="false" showQuickActionVfHeader="false">
+    <style>
+        body {
+            background-color:#f8f8f8;
+        }
+    </style>
+
+    <apex:form >
+        <apex:outputLabel value="File" for="file" style="font-weight:bold;font-size:91%;;color:4a4a56"/>
+        &nbsp;
+        <apex:outputPanel rendered="{!attachment.Id == null}">
+            <apex:inputFile id="file" value="{!attachment.body}" filename="{!attachment.name}"/>
+            &nbsp;
+            <apex:commandButton value="Upload" action="{!upload}"/>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!attachment.Id != null}">
+            <apex:outputLink target="_blank" value="{!URLFOR($Action.Attachment.Download, attachment.Id)}">{!HTMLENCODE(attachment.Name)}</apex:outputLink>
+            &nbsp;&#124;&nbsp;&nbsp;
+            <apex:commandLink value="delete" action="{!deleteUpload}"/>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

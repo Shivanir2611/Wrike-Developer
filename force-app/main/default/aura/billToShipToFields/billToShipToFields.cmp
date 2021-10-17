@@ -1,0 +1,119 @@
+<aura:component controller="BillToShipToFormController">
+    <aura:attribute name="contact" type="QS_Bill_To_Ship_To__c"/>
+    <aura:attribute name="disabled" type="Boolean" default="false"/>
+    <aura:attribute name="countryOptions" type="Map[]"/>
+    <aura:attribute name="usStateOptions" type="Map[]"/>
+    <aura:attribute name="canadaStateOptions" type="Map[]"/>
+    <aura:attribute name="showVatNumber" type="Boolean" default="false"/>
+
+    <aura:attribute name="stateOptions" type="Map[]"/>
+    <aura:attribute name="isCountryWithStates" type="Boolean" default="false"/>
+
+    <aura:registerEvent name="onBillToChange" type="c:billToChanged"/>
+
+    <aura:handler name="change" value="{!v.contact}" action="{!c.fireChangeEvent}"/>
+    <aura:handler name="change" value="{!v.contact.QS_Country_Code__c}" action="{!c.handleEventCountryCodeChanged}"/>
+
+    <aura:method name="validate" action="{!c.validate}">
+        <aura:attribute name="isValid" type="boolean" default="false"/>
+    </aura:method>
+
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Address 1"
+                             value="{!v.contact.QS_Street_1__c}"
+                             disabled="{!v.disabled}"
+                             required="true"
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Company Name"
+                             value="{!v.contact.QS_Company_Name__c}"
+                             disabled="{!v.disabled}"
+                             required="true"
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Address 2" value="{!v.contact.QS_Street_2__c}" disabled="{!v.disabled}"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Attention To"
+                             value="{!v.contact.QS_Attention_To__c}"
+                             disabled="{!v.disabled}"
+                             required="{!not(v.contact.EndCustomer__c)}"
+                             pattern="[^~,;]+"
+                             messageWhenPatternMismatch="Cannot contain the following characters: '~' or ',' or ';'."
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="City"
+                             value="{!v.contact.QS_City__c}"
+                             disabled="{!v.disabled}"
+                             required="true"
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input type="email"
+                             label="Email"
+                             value="{!v.contact.QS_Email__c}"
+                             disabled="{!v.disabled}"
+                             required="{!not(v.contact.EndCustomer__c)}"
+                             pattern="[a-zA-Z0-9._|\\%#`=?&amp;/$^*!}{+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}"
+                             messageWhenPatternMismatch="Email format mismatch."
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:combobox label="Country"
+                                value="{!v.contact.QS_Country_Code__c}"
+                                disabled="{!v.disabled}"
+                                options="{!v.countryOptions}"
+                                onchange="{!c.handleCountrySelectorChanged}"
+                                required="true"
+                                placeholder="Select country"
+                                aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Phone" value="{!v.contact.QS_Phone__c}" disabled="{!v.disabled}"/>
+        </lightning:layoutItem>
+        <aura:if isTrue="{!v.isCountryWithStates}">
+            <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+                <lightning:combobox label="State"
+                                    value="{!v.contact.QS_State_Code__c}"
+                                    disabled="{!v.disabled}"
+                                    options="{!v.stateOptions}"
+                                    required="{!v.isCountryWithStates}"
+                                    placeholder="Select state"
+                                    aura:id="inputField"/>
+            </lightning:layoutItem>
+        </aura:if>
+        <aura:if isTrue="{!not(v.isCountryWithStates)}">
+            <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+                <lightning:input label="Region/Province"
+                                 value="{!v.contact.RegionState__c}"
+                                 disabled="{!v.disabled}"/>
+            </lightning:layoutItem>
+        </aura:if>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:input label="Zip/Postal Code"
+                             value="{!v.contact.QS_Zip_Postal_Code__c}"
+                             disabled="{!v.disabled}"
+                             required="{!v.isCountryWithStates}"
+                             aura:id="inputField"/>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            <lightning:textarea label="Additional Emails"
+                                value="{!v.contact.QS_Secondary_Email__c}"
+                                disabled="{!v.disabled}"
+                                aura:id="inputField"/>
+        </lightning:layoutItem>
+        <aura:if isTrue="{!v.showVatNumber}">
+            <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+            </lightning:layoutItem>
+            <lightning:layoutItem size="6" class="slds-p-horizontal--small slds-p-vertical--xxx-small">
+                <lightning:input label="VAT Number"
+                                 value="{!v.contact.VATNumber__c}"
+                                 disabled="{!v.disabled}"/>
+            </lightning:layoutItem>
+        </aura:if>
+    </lightning:layout>
+</aura:component>

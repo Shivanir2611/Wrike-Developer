@@ -1,0 +1,69 @@
+<apex:component controller="QuoteEmailComponentController" allowdml="true">
+    <apex:attribute name="parentId" type="String" required="true" assignTo="{!opportunityId}" description="Id of parent object"/>
+    <apex:attribute name="backId" type="String" required="true" assignTo="{!id}" description="Id of related object"/>
+    <apex:attribute name="parentController" 
+                    type="AbstractQuoteEmailController" 
+                    assignTo="{!pageController}" 
+                    required="true"    
+                    description="Parent page controller"/>
+  
+    <apex:pagemessages />
+    <apex:variable var="contactsExist" value="{!contacts != null && contacts.size > 0}"/>
+    <apex:pageBlock >
+        <br/>
+        <apex:pageBlockSection title="Recipient" columns="1" collapsible="false">
+            <apex:outputPanel rendered="{!NOT(contactsExist)}">No opportunity contacts.</apex:outputPanel>
+            <apex:pageBlockTable id="contactsTable" value="{!contacts}" var="con" rendered="{!contactsExist}">
+                <apex:column headerValue="To" style="width:80px">                   
+                    <apex:actionsupport action="{!selectContact}" event="onclick" rerender="contactsTable,contentTable">
+                        <apex:outputPanel rendered="{!selectedContact.Id == con.Id}">
+                            <input name="contact-radio" type="radio" checked="checked"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!selectedContact.Id != con.Id}">
+                            <input name="contact-radio" type="radio" />
+                        </apex:outputPanel>                    
+                        <apex:param name="contactId" value="{!con.Id}"/>
+                    </apex:actionsupport>                            
+                </apex:column> 
+                <apex:column headerValue="Name">
+                    <div style="padding: 3px 0 3px 0">
+                        <apex:outputText value="{!IF(con.Name != null, con.Name, con.FirstName + ' ' + con.LastName)}"/>
+                    </div>      
+                </apex:column>
+                <apex:column headerValue="Email">
+                    <div style="padding: 3px 0 3px 0">
+                        <apex:outputText value="{!con.Email}"/> 
+                    </div>      
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        <br/>
+        <apex:pageBlockSection id="contentTable" title="Details" columns="1" collapsible="false">
+            <apex:outputText value="Subject:"/>
+            <apex:inputText value="{!subject}" required="true" style="width:90%"/>
+            <br/>
+            <apex:outputText value="Text:"/>
+            <apex:inputTextarea value="{!emailText}" required="true" rows="10" style="width:90%;resize:none;"/>
+        </apex:pageBlockSection>
+        <br/>
+        <apex:pageBlockSection title="Attachments" columns="1">
+            <apex:pageBlockTable value="{!attachments}" var="attach">
+                <apex:column headerValue="Manage" style="width:80px">
+                    <apex:commandLink value="Del" action="{!removeAttachment}" rendered="{!attachments.size > 1}">
+                        <apex:param name="attachId" value="{!attach.Id}"/>
+                    </apex:commandLink>
+                </apex:column>
+                <apex:column headerValue="File">
+                    <div style="padding: 3px 0 3px 0">
+                        <apex:outputLink target="_blank" value="{!URLFOR($Action.Attachment.Download, attach.Id)}">{!attach.name}</apex:outputLink> 
+                    </div>      
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockButtons location="bottom">
+            <apex:commandButton value="Back" action="{!back}"/>
+            <apex:commandButton value="Send" action="{!send}" disabled="{!attachments.size == 0 || selectedContact == null}"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+</apex:component>

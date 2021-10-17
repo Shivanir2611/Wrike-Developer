@@ -1,0 +1,13 @@
+<apex:component >
+    <apex:attribute name="ctrl" type="AbstractPagingWithSortingController" required="true" description="Pagination controller"/>
+    <apex:attribute name="label" description="Header label" type="String"/>
+    <apex:attribute name="field" description="Sorting field" type="String"/>
+    <apex:attribute name="descSorting" description="Desc sorting flag" type="Boolean"/>
+    <apex:commandLink action="{!ctrl.sort}" value="{!label}">
+        <apex:outputText rendered="{!ctrl.sortingFieldName == field}">
+            <apex:outputText rendered="{!ctrl.descSorting == true}" escape="false">&#8673;</apex:outputText>
+            <apex:outputText rendered="{!ctrl.descSorting == false}" escape="false">&#8675;</apex:outputText>
+        </apex:outputText>
+        <apex:param name="fieldName" value="{!field}"/>
+    </apex:commandLink>
+</apex:component>

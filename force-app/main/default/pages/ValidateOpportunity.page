@@ -1,0 +1,102 @@
+<apex:page standardController="Opportunity" extensions="OpportunityZuoraValidationController" tabStyle="Opportunity" showHeader="false" sidebar="false" lightningStylesheets="true">
+    <apex:includeScript value="{!$Resource.jQuery310}"/>
+    <apex:stylesheet value="{!$Resource.validationStyles}"/>
+    <apex:outputPanel rendered="{!isAmendment || isSent}">
+
+        <apex:outputPanel rendered="{!isSent}">
+            <div class="validation-message success">
+                {!errorMessage}
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!NOT(isSent)}">
+            <apex:outputPanel rendered="{!NOT(ISBLANK(errorMessage))}">
+                <div class="validation-message error">
+                    {!errorMessage}
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!ISBLANK(errorMessage)}">
+                <div class="validation-message success" role="alert">
+                    <apex:outputPanel rendered="{!subscription != null}">
+                        <apex:form >
+                            <apex:commandButton value="New Amendment" onclick="checkAndSubmit(this, 'AmendmentQuote');return false;"/>
+                            <apex:commandButton value="New Renewal" onclick="checkAndSubmit(this, 'RenewalQuote');return false;" rendered="{!isRenewalQuotesAvailable}"/>
+                            <script type="text/javascript">
+                                function checkAndSubmit(elem, pageName) {
+                                    elem.disabled='disabled';
+                                    elem.style.opacity=0.5;
+                                    var isLightningEnabled = {!$User.UIThemeDisplayed == 'Theme4d'};
+                                    var url = null;
+                                    if (!!isLightningEnabled) {
+                                        url = '/one/one.app#/alohaRedirect/apex/' + pageName + '?opportunityId={!$CurrentPage.parameters.Id}&zuoraAccountId={!zuoraAccount.id}';
+                                    } else {
+                                        url = '/apex/' + pageName + '?opportunityId={!$CurrentPage.parameters.Id}&zuoraAccountId={!zuoraAccount.id}';
+                                    }
+                                    window.top.location.href = url;
+                                }
+                            </script>
+                        </apex:form>
+                        <div style="margin-top:5px;margin-left:3px;display:inline-block;">
+                            <div style="float:left;">
+                                <strong>Current subscription:</strong>
+                            </div>
+                            <div style="width:100%;margin-left:145px;position:relative;">
+                                <div style="float:left;">
+                                    Zuora Account Name:&nbsp;&nbsp;
+                                    <span style="color:#000000">{!zuoraAccount.name}</span>
+                                </div>
+                                <div style="float:left;padding-left:25px;">
+                                    Contract Date:&nbsp;&nbsp;
+                                    <span style="color:#000000">
+                                        <c:dateField value="{!subscription.subscriptionStartDate}"/>
+                                    </span>
+                                </div>
+                                <div style="float:left;padding-left:25px;">
+                                    Renewal Date:&nbsp;&nbsp;
+                                    <span style="color:#000000">
+                                        <c:dateField value="{!subscription.termEndDate}"/>
+                                    </span>
+                                </div>
+                                <apex:outputPanel rendered="{!subscription != null}">
+                                    <div style="float:left;padding-left:25px;">
+                                        Billing Period:&nbsp;&nbsp;
+                                        <span style="color:#000000">{!billingPeriod}</span>
+                                    </div>
+                                </apex:outputPanel>
+                                <apex:repeat value="{!subscriptionProducts}" var="subscriptionProduct">
+                                    <div style="float:left;clear:both">
+                                        {!subscriptionProduct.name}&nbsp;-&nbsp;
+                                        {!subscriptionProduct.quantity}&nbsp;-&nbsp;
+                                        MRR:&nbsp;<c:currencyField currency="{!currencyCode}"
+                                                                   value="{!subscriptionProduct.mrr}"/>
+                                    </div>
+                                </apex:repeat>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!NOT(isAmendment) && NOT(isSent)}">
+        <div class="validation-message {!IF(cancellationAmendment == null, 'success', 'warning')}">
+            <apex:outputPanel layout="block" rendered="{!cancellationAmendment != null}" style="padding-bottom:0.5em">
+                Subscription was cancelled at&nbsp;<c:dateTimeField value="{!cancellationAmendment.createdDate}"/>. Effective date:&nbsp;<c:dateField value="{!cancellationAmendment.effectiveDate}"/>
+            </apex:outputPanel>
+            <apex:form rendered="{!cancellationAmendment == null || cancellationAmendment.effectiveDate <= TODAY()}">
+                <apex:outputPanel layout="none" rendered="{!NOT(outbound)}">
+                    <div style="padding-bottom:0.5em">
+                        Account: <a target="_blank" href="{!SupportAppLink}">{!HTMLENCODE(accountInfo['name'])}</a>
+                        &nbsp;&nbsp;Owner: <span style="color:#000000">{!HTMLENCODE(accountInfo['owner'])}</span>
+                        &nbsp;&nbsp;License: <span style="color:#000000">{!HTMLENCODE(accountInfo['license'])}</span>
+                    </div>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" rendered="{!outbound}">
+                    <div style="padding-bottom:0.5em">Outbound Quotes only.</div>
+                </apex:outputPanel>
+                <apex:commandButton value="New Quote" onclick="this.disabled = 'disabled';this.style.opacity=0.5;window.top.location.href = '{!SubscriptionQuoteLink}';return false;"/>
+            </apex:form>
+        </div>
+    </apex:outputPanel>
+</apex:page>

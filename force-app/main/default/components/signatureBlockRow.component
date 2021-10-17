@@ -1,0 +1,18 @@
+<apex:component >
+    <apex:attribute name="title" type="String" default="" description="Title"/>
+    <apex:attribute name="content" type="String" default="" description="Content"/>
+    <apex:attribute name="height" type="String" default="30px" description="Row height"/>
+    <apex:attribute name="contentColor" type="String" default="black" description="Content text color"/>
+    <apex:attribute name="border" type="String" default="1px solid black" description="Cell border"/>
+
+    <table-cell height="{!height}" text-align="left" font-size="8px" font-weight="bold" margin-left="5px" border="{!border}" border-right="none">
+        <block>
+            <apex:outputText rendered="{!NOT(ISBLANK(TRIM(title)))}">
+                {!title}:
+            </apex:outputText>
+        </block>
+    </table-cell>
+    <table-cell height="{!height}" text-align="left" font-size="8px" border="{!border}" border-left="none">
+        <block color="{!contentColor}">{!content}</block>
+    </table-cell>
+</apex:component>

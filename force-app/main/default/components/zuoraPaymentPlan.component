@@ -1,0 +1,49 @@
+<apex:component >
+    <apex:attribute name="preview" type="InvoicePreview" required="true" description="Generated quote preview."/>
+    <apex:attribute name="currency" type="String" required="true" description="Quote currency"/>
+    <apex:attribute name="tableClass" type="String" required="false" default="product-table" description="Css style class for table."/>
+    <apex:attribute name="headerRowClass" type="String" required="false" default="" description="Css style class for table header."/>
+    <apex:attribute name="dataRowClass" type="String" required="false" default="" description="Css style class for table rows."/>
+    
+    <table class="{!tableClass}" style="border-collapse:collapse">
+        <thead>
+            <tr class="{!headerRowClass}">
+                <th style="width:15%">INVOICE DATE</th>
+                <th style="width:45%">INVOICE ITEMS</th>
+                <th style="width:10%">QUANTITY</th>
+                <th style="width:15%">AMOUNT, {!currency}</th>
+                <th style="width:15%">INVOICE TOTAL, {!currency}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="invoice" value="{!preview.invoices}">
+                <apex:repeat var="item" value="{!invoice.items}">
+                    <tr class="{!dataRowClass}">
+                        <apex:variable var="dateCol" value="" rendered="{!item == invoice.items[0]}">
+                            <td rowspan="{!invoice.items.size}">
+                                <c:dateField format="medium" value="{!IF(invoice == preview.invoices[0], preview.firstInvoiceDate, invoice.invoiceDate)}"/>
+                            </td>
+                        </apex:variable>
+                        <td>
+                            {!item.productName}<br/>
+                            <apex:outputText rendered="{!item.chargeType != ''}" escape="false">{!item.chargeType}&nbsp;</apex:outputText>
+                            <c:dateField value="{!item.serviceStartDate}" format="medium"/>
+                            <apex:outputPanel rendered="{!item.serviceStartDate != item.serviceEndDate}">
+                                &nbsp;-&nbsp;<c:dateField value="{!item.serviceEndDate}" format="medium"/>
+                            </apex:outputPanel>
+                        </td>
+                        <td>{!IF(0 > item.chargeAmount,'-','')}{!item.quantity}</td>
+                        <td>
+                            <c:currencyField value="{!item.chargeAmount}" currency="{!currency}"/>
+                        </td>
+                        <apex:variable var="amountCol" value="" rendered="{!item == invoice.items[0]}">
+                            <td rowspan="{!invoice.items.size}">
+                                <c:currencyField value="{!invoice.chargeAmount}" currency="{!currency}"/>
+                            </td>
+                        </apex:variable>
+                    </tr>
+                </apex:repeat>
+            </apex:repeat>
+        </tbody>
+    </table>
+</apex:component>

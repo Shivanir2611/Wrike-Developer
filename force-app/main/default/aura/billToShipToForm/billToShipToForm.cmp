@@ -1,0 +1,120 @@
+<aura:component controller="BillToShipToFormController" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+    <aura:attribute name="quoteId" type="Id"/>
+    <aura:attribute name="hasEndCustomer" type="Boolean" default="false"/>
+    <aura:attribute name="billTo" type="QS_Bill_To_Ship_To__c"/>
+    <aura:attribute name="shipTo" type="QS_Bill_To_Ship_To__c"/>
+    <aura:attribute name="endCustomer" type="QS_Bill_To_Ship_To__c"/>
+    <aura:attribute name="shipToSameAsBillTo" type="Boolean"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+
+    <aura:attribute name="countryOptions" type="Map[]"/>
+    <aura:attribute name="usStateOptions" type="Map[]"/>
+    <aura:attribute name="canadaStateOptions" type="Map[]"/>
+    <aura:attribute name="countryMap" type="Map"/>
+    <aura:attribute name="usStateMap" type="Map"/>
+    <aura:attribute name="canadaStateMap" type="Map"/>
+
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler event="force:refreshView" action="{!c.init}" />
+
+    <aura:if isTrue="{!v.quoteId == null}">
+        <aura:html tag="style">
+            .cuf-content {
+                padding: 0 0rem !important;
+            }
+            .slds-p-around--medium {
+                padding: 0rem !important;
+            }
+            .slds-modal__content {
+                overflow-y:hidden !important;
+                height: unset !important;
+                max-height: unset !important;
+            }
+            .slds-modal__container {
+                width: 70% !important;
+                max-width: unset !important;
+            }
+        </aura:html>
+    </aura:if>
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand"/>
+        </aura:if>
+
+        <div class="slds-scrollable" style="height: 640px; padding: 1rem;">
+            <lightning:layout multipleRows="true">
+                <aura:if isTrue="{!v.hasEndCustomer}">
+                    <lightning:layoutItem size="4" padding="horizontal-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" padding="around-small">
+                                <p class="slds-text-heading--medium">End Customer</p>
+                                <p>(for partner deals)</p>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12">
+                                <c:billToShipToFields countryOptions="{!v.countryOptions}"
+                                                      usStateOptions="{!v.usStateOptions}"
+                                                      canadaStateOptions="{!v.canadaStateOptions}"
+                                                      contact="{!v.endCustomer}"
+                                                      aura:id="endCustomerFields"/>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                </aura:if>
+                <lightning:layoutItem size="{!v.hasEndCustomer ? 4 : 6}" padding="horizontal-small">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="12" padding="around-small">
+                            <p class="slds-text-heading--medium">Bill To</p>
+                            <p>(for invoicing)</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12">
+                            <c:billToShipToFields onBillToChange="{!c.cloneShipToFromBillTo}"
+                                                  countryOptions="{!v.countryOptions}"
+                                                  usStateOptions="{!v.usStateOptions}"
+                                                  canadaStateOptions="{!v.canadaStateOptions}"
+                                                  contact="{!v.billTo}"
+                                                  aura:id="billToFields"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <lightning:input type="checkbox" label="Send invoice by email" checked="{!v.billTo.QS_Invoice_via_Email__c}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <lightning:input type="checkbox" label="Upload invoice via Portal" checked="{!v.billTo.QS_Invoice_via_Portal__c}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12" padding="horizontal-small">
+                            <lightning:textarea label="Instructions to the billing team" value="{!v.billTo.Billing_Comments__c}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="{!v.hasEndCustomer ? 4 : 6}" padding="horizontal-small">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <p class="slds-text-heading--medium">Ship To</p>
+                            <p>(for sales tax purposes)</p>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <lightning:input type="checkbox"
+                                             label="Same as Bill To"
+                                             onchange="{!c.cloneShipToFromBillTo}"
+                                             checked="{!v.shipToSameAsBillTo}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12">
+                            <c:billToShipToFields disabled="{!v.shipToSameAsBillTo}"
+                                                  countryOptions="{!v.countryOptions}"
+                                                  usStateOptions="{!v.usStateOptions}"
+                                                  canadaStateOptions="{!v.canadaStateOptions}"
+                                                  contact="{!v.shipTo}"
+                                                  aura:id="shipToFields"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+        <footer class="slds-modal__footer">
+            <lightning:button label="Cancel" onclick="{!c.closeForm}"/>
+            <lightning:button label="Save" variant="brand" onclick="{!c.save}"/>
+        </footer>
+    </div>
+</aura:component>

@@ -1,0 +1,74 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+    <aura:attribute name="recordId" type="String"/>
+    <lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Account" class="slds-p-around--small" density="Comfy">
+        <div class="slds-box">
+            <lightning:layout>
+                <lightning:layoutitem size="6">
+                    <div>
+                        <label class="slds-form-element__label" for="form-element-01">Cross-Sell / Upsell Score</label> 
+                        <lightning:helpText content="Account Cross-Sell / Upsell Score"></lightning:helpText>
+                    </div>
+                    <lightning:outputField variant="label-hidden" fieldName="Cross_Sell_Upsell_Score__c" />
+                </lightning:layoutitem>
+                <lightning:layoutitem size="6">
+                    <lightning:outputField fieldName="Surge_Heat__c"/>
+                </lightning:layoutitem>
+            </lightning:layout>
+            
+            <lightning:layout>
+                <lightning:layoutitem size="6">
+                    <lightning:outputField fieldName="Industry"/>
+                </lightning:layoutitem>
+                <lightning:layoutitem size="6">
+                    <lightning:outputField fieldName="HighestSurgePercent__c"/>
+                </lightning:layoutitem>
+            </lightning:layout>
+            
+            <lightning:layout>
+                <lightning:layoutitem size="6">
+                    <div class="slds-form-element">
+                        <div>
+                            <label class="slds-form-element__label" for="form-element-01">Account Penetration</label> 
+                            <lightning:helpText content="(Aggregate Subscription User Licenses Purchased / Number of Employees from Account) * 100"></lightning:helpText>
+                        </div>
+                        <lightning:outputField variant="label-hidden" fieldName="Account_Penetration__c" />          
+                    </div>
+                </lightning:layoutitem>
+                <lightning:layoutitem size="6">
+                    <lightning:outputField fieldName="EndOfSurge__c"/>
+                </lightning:layoutitem>
+            </lightning:layout>
+            <br/>
+            
+            <lightning:layout>
+                <lightning:layoutitem size="6"/>
+                <lightning:layoutitem size="6">
+                    <div class="slds-form-element">             
+                        <label class="slds-form-element__label" for="form-element-01">Topics</label>              
+                        <lightning:outputField variant="label-hidden" fieldName="Bombora_Topics__c" />          
+                    </div>
+                </lightning:layoutitem>
+            </lightning:layout>
+            
+            <lightning:layout>   
+                <lightning:layoutitem size="6"/>
+                <lightning:layoutitem size="6">
+                    <div class="slds-form-element">             
+                        <label class="slds-form-element__label" for="form-element-01">Topic Count</label>              
+                        <lightning:outputField variant="label-hidden" fieldName="Bombora_Final_Topic_Count__c" />          
+                    </div>
+                </lightning:layoutitem>
+            </lightning:layout>
+            
+            <lightning:layout>
+                <lightning:layoutitem size="6"/>
+                <lightning:layoutitem size="6">
+                    <div class="slds-form-element">             
+                        <label class="slds-form-element__label" for="form-element-01">Last Load Date</label>              
+                        <lightning:outputField variant="label-hidden" fieldName="Bombora_Last_Load_Date__c" />          
+                    </div>
+                </lightning:layoutitem>
+            </lightning:layout> 
+        </div>
+    </lightning:recordViewForm>
+</aura:component>

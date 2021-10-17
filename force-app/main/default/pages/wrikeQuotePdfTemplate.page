@@ -1,0 +1,110 @@
+<apex:page controller="WrikeQuotePdfTemplateController" renderAs="pdf" sidebar="false"
+           standardStylesheets="false" applyHtmlTag="false" showHeader="false" applyBodyTag="false">
+    <html>
+        <head>
+            <style>
+                @page {
+                    margin-top: 8pt;
+                    margin-bottom: 20pt;
+                    padding-top: 8pt;
+                    padding-bottom: 0;
+
+                    @bottom-center {
+                        font-size: 8pt;
+                        font-family: Arial Unicode MS;
+                        content: "Order# {!quote.quoteNumber} - Page " counter(page) " of " counter(pages);
+                    }
+
+                }
+
+                html {
+                    height:100%;
+                }
+
+                body {
+                    margin-top:0;
+                    margin-bottom:0;
+                    padding-top:0;
+                    padding-botom:0;
+                    height:100%;
+                    font-size: 8pt;
+                    font-family:sans-serif,Courier;
+                }
+
+                body a {
+                    text-decoration:none;
+                }
+
+                table.info-table td {
+                    vertical-align: top;
+                }
+
+                table.product-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                table.product-table th, table.product-table td {
+                    border: 0.5pt solid black;
+                    padding: 4pt 8pt 4pt 8pt;
+                }
+
+                table.product-table th {
+                    background-color:#74B95B;
+                    color:#FFFFFF;
+                    white-space: nowrap;
+                }
+
+                table.product-table td {
+                    color:#303030;
+                }
+
+                table.signature-table {
+                    width: 60%;
+                    border-collapse: collapse;
+                }
+
+                table.signature-table td, table.signature-table th {
+                    vertical-align: middle;
+                    padding:8pt 0 8pt 0;
+                }
+
+                table.signature-table th {
+                    padding-right: 25pt;
+                    white-space: nowrap;
+                }
+
+                table.signature-table td {
+                    border-bottom: 0.5pt solid black;
+                    padding-left: 25pt;
+                }
+
+                ol.terms-list li {
+                    font-weight: normal;
+                    padding-top: 2pt;
+                    padding-bottom: 2pt;
+                }
+
+                ol.terms-list ul li {
+                    list-style-type: square;
+                }
+
+                .bold {
+                    font-weight: bold;
+                }
+                .nowrap {
+                    white-space: nowrap;
+                }
+
+                .unicode {
+                    font-family: Arial Unicode MS;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="height:100%">
+                <c:zuoraQuote ctrl="{!controller}" creditCardPage="false"/>
+            </div>
+        </body>
+    </html>
+</apex:page>

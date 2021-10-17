@@ -1,0 +1,131 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="FieldSetController">
+    
+    <aura:attribute name="recordTypeId" type="String"/>
+    <aura:attribute name="objectApiName" type="String"/> 
+    <aura:attribute name="fields" type="List"/>
+    <aura:attribute name="fieldSetName" type="String"/>
+    <aura:attribute name="iconName" type="String"/>
+    <aura:attribute name="title" type="String"/>
+    <aura:attribute name="mode" type="String"/>
+    <aura:attribute name="columns" type="String"/>
+    <aura:attribute name="access" type="boolean"/>
+    <aura:attribute name="inputModeBool" type="Boolean" default="false"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:card title="{!v.title}" iconName="{!v.iconName}" class="slds-p-around--none">        
+        <aura:if isTrue="{!and(v.access, or(v.mode == 'Input',v.mode == 'Inline'))}">
+            <lightning:recordEditForm aura:id="recordViewForm" recordId="{!v.recordId}" objectApiName="{!v.objectApiName}"
+                                      onsubmit="{!c.fireRefreshView}" class="slds-p-around--small">
+                <lightning:messages />
+                <aura:iteration items="{!v.fields}" var="field">
+                    <aura:if isTrue="{!and(v.mode == 'Input', v.columns == '1')}">
+                        <lightning:inputField fieldName="{!field.fieldPath}" />
+                    </aura:if>
+                    <aura:if isTrue="{!and(v.mode == 'Input', v.columns == '2')}">
+                        <lightning:layout>
+                            <lightning:layoutitem size="6">
+                                <lightning:inputField fieldName="{!field.field1}" />
+                            </lightning:layoutitem>
+                            <lightning:layoutitem size="6">
+                                <lightning:inputField fieldName="{!field.field2}" />
+                            </lightning:layoutitem>
+                        </lightning:layout>
+                    </aura:if>
+                    <aura:if isTrue="{!and(v.mode == 'Inline', v.columns == '1')}">
+                        <lightning:layout>
+                            <lightning:layoutitem size="10">
+                                <aura:if isTrue="{!v.inputModeBool}">
+                                    <lightning:inputField fieldName="{!field.fieldPath}" />
+                                    <aura:set attribute="else">
+                                        <lightning:outputField fieldName="{!field.fieldPath}"/>
+                                    </aura:set>
+                                </aura:if>
+                            </lightning:layoutitem>
+                            <aura:if isTrue="{!v.inputModeBool == false}">
+                                <lightning:layoutitem size="2">
+                                    <lightning:buttonIcon iconName="utility:edit" variant="bare"
+                                                          alternativeText="edit"
+                                                          onclick="{!c.handleToggle}"/>
+                                </lightning:layoutitem>
+                            </aura:if>
+                        </lightning:layout>
+                    </aura:if>
+                    <aura:if isTrue="{!and(v.mode == 'Inline', v.columns == '2')}">
+                        <lightning:layout>
+                            <lightning:layoutitem size="6">
+                                <lightning:layout>
+                                    <lightning:layoutitem size="10">
+                                        <aura:if isTrue="{!v.inputModeBool}">
+                                            <lightning:inputField fieldName="{!field.field1}" />
+                                            <aura:set attribute="else">
+                                                <lightning:outputField fieldName="{!field.field1}"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </lightning:layoutitem>
+                                    <aura:if isTrue="{!v.inputModeBool == false}">
+                                        <lightning:layoutitem size="2">
+                                            <lightning:buttonIcon iconName="utility:edit" variant="bare"
+                                                                  alternativeText="edit"
+                                                                  onclick="{!c.handleToggle}"/>
+                                        </lightning:layoutitem>
+                                    </aura:if>
+                                </lightning:layout>
+                            </lightning:layoutitem>
+                            <lightning:layoutitem size="6">
+                                <lightning:layout>
+                                    <lightning:layoutitem size="10">
+                                        <aura:if isTrue="{!v.inputModeBool}">
+                                            <lightning:inputField fieldName="{!field.field2}" />
+                                            <aura:set attribute="else">
+                                                <lightning:outputField fieldName="{!field.field2}"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </lightning:layoutitem>
+                                    <aura:if isTrue="{!v.inputModeBool == false}">
+                                        <lightning:layoutitem size="2">
+                                            <lightning:buttonIcon iconName="utility:edit" variant="bare"
+                                                                  alternativeText="edit"
+                                                                  onclick="{!c.handleToggle}"/>
+                                        </lightning:layoutitem>
+                                    </aura:if>
+                                </lightning:layout>
+                            </lightning:layoutitem>
+                        </lightning:layout>
+                    </aura:if>
+                </aura:iteration>
+                <div class="slds-align--absolute-center slds-p-top--small">
+                    <aura:if isTrue="{!and(v.mode == 'Inline', v.inputModeBool)}">
+                        <lightning:button variant="neutral" class="slds-m-horizontal--xx-small" name="Cancel" label="Cancel"
+                                          onclick="{!c.handleToggle}"/>
+                    </aura:if>
+                    <aura:if isTrue="{!or(v.mode == 'Input', and(v.mode == 'Inline', v.inputModeBool))}">
+                        <lightning:button variant="brand" class="slds-m-horizontal--xx-small" type="submit" name="update"
+                                          label="{!empty(v.recordId)?'Create':'Update'}" />
+                    </aura:if>
+                </div>
+            </lightning:recordEditForm>
+            
+            <aura:set attribute="else">
+                <lightning:recordViewForm aura:id="recordViewForm1" recordId="{!v.recordId}" objectApiName="{!v.objectApiName}" class="slds-p-around--small">
+                    <lightning:messages />
+                    <aura:iteration items="{!v.fields}" var="field">
+                        <aura:if isTrue="{!v.columns == '1'}">
+                            <lightning:outputField fieldName="{!field.fieldPath}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.columns == '2'}">
+                            <lightning:layout>
+                                <lightning:layoutitem size="6">
+                                    <lightning:outputField fieldName="{!field.field1}"/>
+                                </lightning:layoutitem>
+                                <lightning:layoutitem size="6">
+                                    <lightning:outputField fieldName="{!field.field2}"/>
+                                </lightning:layoutitem>
+                            </lightning:layout>
+                        </aura:if>
+                    </aura:iteration>
+                </lightning:recordViewForm>
+            </aura:set>  
+        </aura:if>
+    </lightning:card>
+</aura:component>

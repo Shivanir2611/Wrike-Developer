@@ -1,0 +1,84 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="leadRecord" type="Object"/>
+    
+    <force:recordData
+    	recordId="{!v.recordId}"
+        fields="EmailData__r.QualificationAnswer1__c, EmailData__r.QualificationAnswer2__c, EmailData__r.QualificationQuestion1__c, EmailData__r.QualificationQuestion2__c, EmailData__r.SelfSelectedCompanySize__c, 
+                Contact__r.Marketo_Marketing_Notes__c, Contact__r.Marketing_Notes_Appending__c, Contact__r.LeadSource, Contact__r.Lead_Sub_Source__c, Contact__r.Most_Recent_Campaign__c, Contact__r.Campaign_Member_Status__c"
+        targetFields="{!v.leadRecord}"
+	/>
+    
+    <div class="slds-box">    
+        <b>Email Data Details</b>
+        <br/>
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Qualification Question 1</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.EmailData__r.QualificationQuestion1__c}" />
+            </lightning:layoutitem>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Qualification Answer 1</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.EmailData__r.QualificationAnswer1__c}" />
+            </lightning:layoutitem>
+        </lightning:layout>
+        <br/>
+        
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Qualification Question 2</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.EmailData__r.QualificationQuestion2__c}" />
+            </lightning:layoutitem>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Qualification Answer 2</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.EmailData__r.QualificationAnswer2__c}" />
+            </lightning:layoutitem>
+        </lightning:layout>
+        <br/>
+        
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Self Selected Company Size</label> <br/>           
+                <lightning:formattedText value="{!v.leadRecord.EmailData__r.SelfSelectedCompanySize__c}" />         
+            </lightning:layoutitem>
+        </lightning:layout>
+    </div>
+    <br/>
+    <div class="slds-box">
+        <b>Related Contact Details</b>
+        <br/>
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Most Recent Campaign</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.Most_Recent_Campaign__c}" />
+            </lightning:layoutitem>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Campaign Member Status</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.Campaign_Member_Status__c}" />
+            </lightning:layoutitem>
+        </lightning:layout>
+        <br/>
+        
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Marketo Marketing Notes</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.Marketo_Marketing_Notes__c}" />
+            </lightning:layoutitem>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Marketo Notes Appending</label> <br/>
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.Marketing_Notes_Appending__c}" />
+            </lightning:layoutitem>
+        </lightning:layout>
+        <br/>
+        
+        <lightning:layout>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Lead Source</label> <br/>           
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.LeadSource}" />         
+            </lightning:layoutitem>
+            <lightning:layoutitem size="6">
+                <label class="slds-form-element__label">Lead Sub-Source</label> <br/>           
+                <lightning:formattedText value="{!v.leadRecord.Contact__r.Lead_Sub_Source__c}" />         
+            </lightning:layoutitem>
+        </lightning:layout>
+    </div>
+</aura:component>

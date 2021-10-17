@@ -1,0 +1,89 @@
+<aura:component controller="OpportunityValidationController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="validationResult" type="OpportunityValidationResult"/>
+
+    <aura:attribute name="opportunity" type="Opportunity"/>
+    <aura:attribute name="recordLoadError" type="String"/>
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.recordId}"
+                      fields="Wrike_Account_Id__c, CurrencyIsoCode"
+                      targetFields="{!v.opportunity}"
+                      targetError="{!v.recordLoadError}"/>
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <article class="slds-card">
+        <div class="slds-page-header slds-grid">
+            <header slot="title" class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning:icon iconName="standard:quotes" size="small" alternativeText="New Wrike Quote"/>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title" style="font-weight:700;">
+                        <span>New Wrike Quote</span>
+                    </h2>
+                </div>
+                <div class="slds-no-flex">
+                    <aura:if isTrue="{!v.validationResult.isAmendment == true}">
+                        <lightning:button label="New Amendment" onclick="{!c.goToNewAmendmentPage}"/>
+                        <aura:if isTrue="{!v.validationResult.isRenewalQuotesAvailable}">
+                            <lightning:button label="New Renewal" onclick="{!c.goToNewRenewalPage}"/>
+                        </aura:if>
+                    </aura:if>
+                    <aura:if isTrue="{!v.validationResult.isOutbound == true || v.validationResult.isNewSubscription == true}">
+                        <lightning:button label="New Quote" onclick="{!c.goToNewQuotePage}"/>
+                    </aura:if>
+                </div>
+            </header>
+        </div>
+        <div class="slds-card__body slds-border_top slds-m-top--none slds-m-bottom--none">
+            <div class="slds-p-around--small">
+                <aura:if isTrue="{!not(empty(v.validationResult.message))}">
+                    <ui:message severity="error" class="slds-m-around--none">
+                        {!v.validationResult.message}
+                    </ui:message>
+                </aura:if>
+                <aura:if isTrue="{!(empty(v.validationResult.message))}">
+                    <aura:if isTrue="{!v.validationResult.isOutbound == true}">
+                        Outbound Quotes only.
+                    </aura:if>
+                    <aura:if isTrue="{!v.validationResult.isSent == true}">
+                        The Opportunity Quote has been successfully sent to Z-Billing.<br/>
+                        Please create a new Opportunity and Quote if you need to change the corresponding Zuora subscription.
+                    </aura:if>
+                    <aura:if isTrue="{!v.validationResult.isAmendment == true}">
+                        <div style="display:inline-block;">
+                            <b>Zuora Account Name:</b>&nbsp;&nbsp;{!v.validationResult.zuoraAccount.name}<br/>
+                            <b>Contract Date:</b>&nbsp;&nbsp;<ui:outputDate value="{!v.validationResult.zuoraSubscription.subscriptionStartDate}" format="MM/dd/YYYY"/><br/>
+                            <b>Renewal Date:</b>&nbsp;&nbsp;<ui:outputDate value="{!v.validationResult.zuoraSubscription.termEndDate}" format="MM/dd/YYYY"/><br/>
+                            <aura:if isTrue="{!v.validationResult.billingPeriod != null}">
+                                <b>Billing Period:</b>&nbsp;&nbsp;{!v.validationResult.billingPeriod}<br/>
+                            </aura:if>
+                            <br/>
+                            <aura:iteration items="{!v.validationResult.zuoraSubscriptionProducts}" var="product">
+                                <div style="float:left;clear:both">
+                                    {!product.name}&nbsp;-&nbsp;{!product.quantity}&nbsp;-&nbsp;
+                                    MRR:&nbsp;<c:currencyField currencyCode="{!v.opportunity.CurrencyIsoCode}" value="{!product.mrr}"/>
+                                </div>
+                            </aura:iteration>
+                        </div>
+                    </aura:if>
+                    <aura:if isTrue="{!v.validationResult.cancelledAmendment != null}">
+                        <ui:message severity="warning"
+                                    class="{!if(v.validationResult.isNewSubscription == true,
+                                            'slds-m-top--none slds-m-horizontal--none slds-m-bottom--x-small',
+                                            'slds-m-around--none')}">
+                            Subscription was cancelled at&nbsp;<ui:outputDateTime timezone="America/Los_Angeles" value="{!v.validationResult.cancelledAmendment.createdDate}" format="MM/dd/YYYY"/>.
+                            Effective date:&nbsp;<ui:outputDate value="{!v.validationResult.cancelledAmendment.effectiveDate}" format="MM/dd/YYYY"/>
+                        </ui:message>
+                    </aura:if>
+                    <aura:if isTrue="{!v.validationResult.isNewSubscription == true}">
+                        <b>Account:</b>&nbsp;&nbsp;<a target="_blank" href="{!v.validationResult.wrikeUrl + 'supportapp/?account=' + v.opportunity.Wrike_Account_Id__c}">
+                            {!v.validationResult.wrikeAccountInfo.name}
+                        </a><br/>
+                        <b>Owner:</b>&nbsp;&nbsp;{!v.validationResult.wrikeAccountInfo.owner}<br/>
+                        <b>License:</b>&nbsp;&nbsp;{!v.validationResult.wrikeAccountInfo.license}
+                    </aura:if>
+                </aura:if>
+            </div>
+        </div>
+    </article>
+</aura:component>

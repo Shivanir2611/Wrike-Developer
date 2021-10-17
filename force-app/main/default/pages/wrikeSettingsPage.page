@@ -1,0 +1,48 @@
+<apex:page controller="WrikeSettingsPageController">
+    <apex:stylesheet value="{!$Resource.validationStyles}"/>
+    <br/>
+    <br/>
+    <h2 style="font-size:1.8em;color:#404040">Wrike Demo Account</h2>
+    <br/>
+    <br/>
+    
+    <apex:outputPanel rendered="{!demoAccountData == null}">
+        <div class="validation-message error">
+            You don&#39;t have a related demo Wrike account.
+        </div>
+    </apex:outputPanel>
+    <zqu:StatusModal statusMessage="Demo account reset..." />
+    <apex:actionStatus startText="" stopText="" onstart="displayStatusModal()" onstop="closeStatusModal()"/>
+    <apex:outputPanel rendered="{!demoAccountData != null}" id="demoAccountPanel">
+        <apex:form >
+            <apex:actionFunction name="resetComplete" action="{!refresh}" reRender="demoAccountPanel"/>
+            <apex:outputPanel rendered="{!resetInProgress}"> 
+                <script type="text/javascript">
+                    (function() {
+                        var checkResetCompleted = function () {
+                            WrikeSettingsPageController.checkResetCompleted(
+                                function(result, event) {
+                                    if(result) {
+                                        closeStatusModal();
+                                        resetComplete();    
+                                    } else {
+                                        window.setTimeout(checkResetCompleted, 3000);
+                                    }
+                                });
+                        }
+                        displayStatusModal();
+                        window.setTimeout(checkResetCompleted, 3000);
+                    })();
+                </script>
+            </apex:outputPanel>
+            <apex:repeat var="infoLine" value="{!info}">
+                {!HTMLENCODE(infoLine)}<br/>
+            </apex:repeat>
+            <br/>
+            <br/>
+        
+            <apex:commandButton value="Reset My Demo Account" 
+                                action="{!resetDemoAccount}" reRender="demoAccountPanel"/>
+         </apex:form>
+    </apex:outputPanel>
+</apex:page>

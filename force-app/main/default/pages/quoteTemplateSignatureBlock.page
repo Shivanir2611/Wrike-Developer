@@ -1,0 +1,111 @@
+<apex:page controller="CPQQuoteTemplateSignatureController" showHeader="false" sidebar="false" cache="false" contentType="text/xml">
+    <block page-break-inside="avoid">
+        <table table-layout="fixed" width="100%" margin-top="10px">
+            <table-body>
+                <table-row>
+                    <table-cell border-top-style="solid" border-top-width="1px" border-top-color="black" border-left-style="solid" border-left-width="1px" border-left-color="black" border-right-style="solid" border-right-width="1px" border-right-color="black" height="8px" text-align="left" background-color="#04454D" font-weight="bold" color="White" font-size="8px">
+                        <block margin-left="10px">ACKNOWLEDGED AND AGREED</block>
+                    </table-cell>
+                </table-row>
+            </table-body>
+        </table>
+        <table table-layout="fixed" width="100%" margin-top="10px">
+            <table-body>
+                <table-row>
+                    <table-cell font-size="8px">
+                        <block>For good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the Parties agree to the terms and conditions of this Order Form through their undersigned authorized representatives.</block>
+                    </table-cell>
+                </table-row>
+            </table-body>
+        </table>
+        <table table-layout="fixed" width="100%" margin-top="10px">
+            <table-column column-width="18%"/>
+            <table-column column-width="32%"/>
+            <table-column column-width="18%"/>
+            <table-column column-width="32%"/>
+            <table-body>
+                <table-row display-align="center">
+                    <table-cell number-columns-spanned="2" margin-left="5px" height="30px" text-align="left" font-size="8px" font-weight="bold" text-decoration="underline" background-color="lightgrey" border="1px solid black">
+                        <block>{!IF(hasReseller, 'Reseller', 'Customer')}</block>
+                    </table-cell>
+                    <table-cell number-columns-spanned="2" margin-left="5px" height="30px" text-align="left" font-size="8px" font-weight="bold" text-decoration="underline" background-color="lightgrey" border="1px solid black">
+                        <block>Wrike, Inc.</block>
+                    </table-cell>
+                </table-row>
+                <table-row display-align="center">
+                    <c:signatureBlockRow title="Authorized Signature*" content="\s1\" height="50px" contentColor="white"/>
+                    <table-cell height="50px" text-align="left" font-size="8px" font-weight="bold" margin-left="5px" border="1px solid black" border-right="none">
+                        <block>Authorized Signature:</block>
+                    </table-cell>
+                    <table-cell height="50px" text-align="left" font-size="8px" border="1px solid black" border-left="none">
+                        <block>
+                            <apex:outputText rendered="{!preSigned}">
+                                <external-graphic src="data:img/png;base64,{!wrikeSignatureBase64}"></external-graphic>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!NOT(preSigned)}">
+                                <block color="white">\s{!wrikeSignerNumber}\</block>
+                            </apex:outputText>
+                        </block>
+                    </table-cell>
+                </table-row>
+                <table-row display-align="center">
+                    <c:signatureBlockRow title="Name" content="\n1\" contentColor="white"/>
+                    <c:signatureBlockRow title="Name"
+                                         content="{!IF(preSigned, wrikeSignerName, '\\n' + wrikeSignerNumber + '\\')}"
+                                         contentColor="{!IF(preSigned, 'black', 'white')}"/>
+                </table-row>
+                <table-row display-align="center">
+                    <c:signatureBlockRow title="Title" content="\t1\" contentColor="white"/>
+                    <c:signatureBlockRow title="Title"
+                                         content="{!IF(preSigned, 'VP Corporate Controller', '\\t' + wrikeSignerNumber + '\\')}"
+                                         contentColor="{!IF(preSigned, 'black', 'white')}"/>
+                </table-row>
+                <table-row display-align="center">
+                    <c:signatureBlockRow title="Date" content="\d1\" contentColor="white"/>
+                    <c:signatureBlockRow title="Date"
+                                         content="{!IF(preSigned, wrikeSignFormattedDate, '\\d' + wrikeSignerNumber + '\\')}"
+                                         contentColor="{!IF(preSigned, 'black', 'white')}"/>
+                </table-row>
+                <table-row display-align="center">
+                    <c:signatureBlockRow title="Legal Notice Email" content="\legal_email1\" contentColor="white"/>
+                    <c:signatureBlockRow title="Legal Notice Email" content="legal@team.wrike.com"/>
+                </table-row>
+                <apex:outputText rendered="{!additionalCustomerSignatures != 0}">
+                    <table-row display-align="center">
+                        <table-cell number-columns-spanned="2" margin-left="5px" height="25px" text-align="center" font-size="8px" font-weight="bold" border="1px solid black">
+                            <block>Additional Signature(s)</block>
+                        </table-cell>
+                        <table-cell number-columns-spanned="2"><block></block></table-cell>
+                    </table-row>
+                    <apex:repeat value="{!additionalSignatureNumbers}" var="index">
+                        <table-row display-align="center">
+                            <c:signatureBlockRow title="Authorized Signature*" content="\s{!index}\" height="50px" contentColor="white"/>
+                            <c:signatureBlockRow border="none"/>
+                        </table-row>
+                        <table-row display-align="center">
+                            <c:signatureBlockRow title="Name" content="\n{!index}\" contentColor="white"/>
+                            <c:signatureBlockRow border="none"/>
+                        </table-row>
+                        <table-row display-align="center">
+                            <c:signatureBlockRow title="Title" content="\t{!index}\" contentColor="white"/>
+                            <c:signatureBlockRow border="none"/>
+                        </table-row>
+                        <table-row display-align="center">
+                            <c:signatureBlockRow title="Date" content="\d{!index}\" contentColor="white"/>
+                            <c:signatureBlockRow border="none"/>
+                        </table-row>
+                    </apex:repeat>
+                </apex:outputText>
+            </table-body>
+        </table>
+        <table table-layout="fixed" width="100%" margin-top="10px">
+            <table-body>
+                <table-row>
+                    <table-cell font-size="8px">
+                        <block font-style="italic">*By signing above, I represent and warrant I have the authority to sign on behalf of {!IF(hasReseller, 'Reseller', 'Customer')}.</block>
+                    </table-cell>
+                </table-row>
+            </table-body>
+        </table>
+    </block>
+</apex:page>

@@ -1,0 +1,10 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+<aura:attribute name="backgroundColour" type="String"/>
+<div class="bgColor">
+<lightning:layout horizontalAlign="space">
+<lightning:layoutItem padding="around-small" flexibility="auto">
+<img src="{!$Resource.WrikeLogoBanner}" alt="Citrix"/>
+</lightning:layoutItem>
+</lightning:layout >
+</div>
+</aura:component>

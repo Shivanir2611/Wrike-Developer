@@ -1,0 +1,8 @@
+<apex:component >
+    <apex:attribute name="value" type="Date" required="true" description="Date value"/>
+    <apex:attribute name="format" type="String" required="false" default="short" description="Date format type"/>
+    <apex:variable var="pattern" value="{!CASE(format, 'long','MMMM dd, yyyy', 'medium','MMM dd, yyyy', 'MM/dd/yyyy')}"/>
+    <apex:outputText value="{0,date,{!pattern}}" rendered="{!value != null}">
+        <apex:param value="{!value}"/> 
+    </apex:outputText>
+</apex:component>

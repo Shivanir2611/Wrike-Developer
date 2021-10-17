@@ -1,0 +1,8 @@
+.THIS .slds-card__header {
+    padding-left: 0;
+}
+
+.THIS .renewal-form .slds-modal__content {
+    padding: 0 !important;
+    position: relative !important;
+}

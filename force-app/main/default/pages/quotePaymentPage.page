@@ -1,0 +1,130 @@
+<apex:page sidebar="false" controller="WrikeQuotePaymentController"
+           showHeader="false" standardStyleSheets="false" cache="false"
+           applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html>
+        <head>
+            <meta name="robots" content="noindex, nofollow"/>
+            <apex:stylesheet value="{!$Resource.validationStyles}"/>
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&amp;subset=cyrillic-ext,latin-ext" rel="stylesheet"/>
+            <style>
+                body {
+                    margin-top:0;
+                    margin-bottom:0;
+                    padding-top:0;
+                    padding-botom:0;
+                    font-size: 12px;
+                    font-family: 'Open Sans',sans-serif;
+                    font-weight: 400;
+                    width: 900px;
+                    margin: 0 auto;
+                    color:#303030;
+                }
+                body a {
+                    text-decoration:none;
+                }
+                table.info-table td {
+                    vertical-align: top;
+                }
+                .header {
+                    font-weight: bold;
+                    font-size:14px;
+                }
+            </style>
+        </head>
+        <body>
+            <apex:outputPanel rendered="{!quote == null}" styleClass="validation-message error" layout="block">
+                Invalid url.
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!quote != null}">
+                <br/>
+                <br/>
+                <apex:outputPanel id="paymentPanel">
+                    <apex:outputPanel id="errorPanel">
+                        <apex:outputPanel rendered="{!paymentErrorMessage != null}">
+                            <div class="error-message">
+                                <apex:outputText value="{!paymentErrorMessage}"/>
+                            </div>
+                            <br/>
+                            <br/>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!newCreditCard != null}">
+                        <div style="padding:8px;font-size:12px;color:#FFFFFF;background-color:#74B95B">
+                            <strong>Thank you! The credit card was successfully saved to your account.</strong><br/>
+                        </div>
+                        <div style="padding:8px;font-size:12px;background-color:#ECECEC;">
+                            <strong>We will process your quote shortly.</strong><br/>
+                            Please contact our sales team if you have any questions. 
+                            Credit card information can be updated in Account management, under the 'Billing' section.
+                        </div>
+                        <br/>
+                        <br/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!signature != null && newCreditCard == null}">
+                        <apex:outputPanel rendered="{!existingCreditCard != null}">
+                            <div class="validation-message warning">
+                                Please note that the existing credit card 
+                                <strong>[{!existingCreditCard.cardHolderName} {!existingCreditCard.cardNumber}]</strong> 
+                                will be replaced once you submit the form.
+                            </div>
+                            <br/>
+                        </apex:outputPanel>
+                        <div style="margin-bottom:8px;">
+                            <div class="header">Add credit card to your account</div>
+                            By submitting your credit card, you agree to the 
+                            <a href="https://www.wrike.com/security/terms/" target="_blank">Terms of Service</a> 
+                            and the <a href="https://www.wrike.com/security/privacy/" target="_blank">Privacy Policy</a>.
+                        </div>
+                        <div id="zuora_payment"></div>
+                        <br/>
+                        <br/>
+                        <script type="text/javascript" src="{!$Setup.Settings__c.ZuoraStaticUrl__c}Resources/libs/hosted/1.3.0/zuora-min.js"/>
+                        <script type="text/javascript">
+                            (function() {
+                                var prepopulateFields = {
+                                   creditCardAddress1: "",
+                                   creditCardAddress2: "",
+                                   creditCardCountry: "USA",
+                                   creditCardHolderName: ""
+                                };
+                                var params = {
+                                    tenantId:"{!signature.tenantId}",
+                                    id:"{!$Setup.Settings__c.ZuoraPaymentPageId__c}",
+                                    key:"{!signature.key}",
+                                    token:"{!signature.token}",
+                                    signature:"{!signature.signature}",
+                                    style:"inline",
+                                    submitEnabled:"true",
+                                    locale:"en_US",
+                                    url:"{!$Setup.Settings__c.ZuoraUrl__c}apps/PublicHostedPageLite.do",
+                                    paymentGateway:"{!$Setup.Settings__c.ZuoraPaymentGateway__c}",
+                                    field_accountId:"{!quote.zuoraAccountId}"
+                                };
+                                var responseCallback = function responseCallback(response) {
+                                    if(response.success && response.refId) {
+                                        savePaymentMethod(response.refId);
+                                    } else {
+                                        displayPaymentError("[" + response.errorCode + "] " + response.errorMessage);
+                                    }
+                                };
+                                Z.render(
+                                    params,
+                                    prepopulateFields,
+                                    responseCallback
+                                );
+                            })();
+                        </script>
+                        <apex:form >
+                            <apex:actionFunction name="savePaymentMethod" action="{!savePaymentMethod}" reRender="paymentPanel">
+                                <apex:param name="paymentMethodId" value="" />
+                            </apex:actionFunction>
+                            <apex:actionFunction name="displayPaymentError" action="{!displayPaymentError}" reRender="errorPanel">
+                                <apex:param name="message" value="" />
+                            </apex:actionFunction>
+                        </apex:form>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

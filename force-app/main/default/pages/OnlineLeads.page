@@ -1,0 +1,43 @@
+<apex:page controller="OnlineLeadsController">
+    <style>
+        body {
+            padding:0;
+            margin:0;
+            font-size:75%;
+        }
+        ul.online-leads {
+            list-style-type: none;
+            margin: 0; 
+            padding: 0;
+            max-width:100%;
+        }
+        ul.online-leads li {
+            margin: 0;
+            padding: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        li:before {
+            content: "&#9632;";
+            padding-right: 5px;
+            font-size: 150%;
+        }
+        ul.online-leads li.online:before {
+            color: #5CB85C;
+        } 
+        ul.online-leads li.recent:before {
+            color: #DAA520;
+        }    
+    </style> 
+    <apex:form id="form">
+        <ul class="online-leads">
+            <apex:repeat value="{!leads}" var="lead">
+                <li class="{!IF(lead.Online_Minutes__c <= 5, 'online','recent')}">
+                    <a href="/{!lead.Id}" target="_blank">{!HTMLENCODE(lead.Email)}</a>
+                </li>
+            </apex:repeat>
+        </ul>
+        <apex:actionPoller action="{!refreshLeads}" reRender="form" interval="60"/>
+    </apex:form>
+</apex:page>

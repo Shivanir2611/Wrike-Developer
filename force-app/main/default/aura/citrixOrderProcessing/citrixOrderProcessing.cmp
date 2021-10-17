@@ -1,0 +1,55 @@
+<aura:component controller="CPQCitrixOrderProcessingController" implements="force:hasRecordId,force:lightningQuickActionWithoutHeader">
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="orderTypeOptions" type="List" default="[
+        {'label': 'Selling to Customers', 'value': 'Citrix-Direct-Replica'},
+        {'label': '$0 “Not For Resell” SKUs for partners', 'value': 'CTRX-NotForResell-Replica'},
+        {'label': 'Citrix Channel Orders', 'value': 'Citrix-Channel-Replica'}
+    ]"/>
+    <aura:attribute name="orderType" type="String" default="Citrix-Direct-Replica"/>
+    <aura:attribute name="createdQuoteId" type="Id" default="null"/>
+
+    <lightning:navigation aura:id="navService"/>
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand"/>
+        </aura:if>
+
+        <lightning:card class="slds-p-around--none">
+            <aura:set attribute="title">
+                Process Citrix Order
+            </aura:set>
+            <aura:if isTrue="{!v.errorMessage}">
+                <ui:message severity="error"
+                            closable="false"
+                            class="slds-p-around--small">
+                        {!v.errorMessage}
+                </ui:message>
+            </aura:if>
+            <lightning:radioGroup name="orderType"
+                                  label="Please select the appropriate option below:"
+                                  class="slds-p-around--small"
+                                  options="{!v.orderTypeOptions}"
+                                  value="{!v.orderType}"
+                                  type="radio"
+                                  required="true"/>
+            <aura:set attribute="footer">
+                <lightning:button label="Cancel" onclick="{!c.close}"/>
+                <lightning:button label="OK" variant="brand" onclick="{!c.process}"/>
+            </aura:set>
+        </lightning:card>
+    </div>
+
+    <aura:html tag="style">
+        .slds-modal__content {
+            overflow-y: hidden !important;
+            height: unset !important;
+            max-height: unset !important;
+        }
+
+        .slds-modal__close {
+            visibility: hidden !important;
+        }
+    </aura:html>
+</aura:component>

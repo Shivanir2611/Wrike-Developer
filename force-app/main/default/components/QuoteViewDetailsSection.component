@@ -1,0 +1,80 @@
+<apex:component >
+    <apex:attribute name="wQuote" type="WrikeQuote" description="wQuote" required="true"/>
+    <apex:attribute name="amendmentTypeToDescription" type="String" description="amendmentTypeToDescription" required="false"/>
+
+    <apex:pageBlockSection columns="{!IF(wQuote.isSubscription || wQuote.isRenewal, '1', '2')}">
+        <apex:pageBlockSection columns="2">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Quote Name"/>
+                <apex:outputText value="{!wQuote.name}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Company"/>
+                <apex:outputText value="{!wQuote.companyName}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.isAmendment}">
+                <apex:outputLabel value="Amendment type"/>
+                <apex:outputText value="{!amendmentTypeToDescription}" escape="false"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!wQuote.effectiveDateLabel}"/>
+                <c:dateField value="{!wQuote.effectiveDate}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Valid Until"/>
+                <c:dateField value="{!wQuote.validUntil}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Invoice Date"/>
+                <c:dateField value="{!wQuote.invoiceDate}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!IF(wQuote.isSubscription, 'Initial', 'New')} Term"/>
+                <apex:outputText value="{!wQuote.newTerm}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.isSubscription}">
+                <apex:outputLabel value="Renewal Term"/>
+                <apex:outputText value="{!wQuote.renewalTerm}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Payment Terms"/>
+                <apex:outputText value="{!wQuote.paymentTerm}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Legal Terms"/>
+                <apex:outputText value="{!wQuote.legalTermsLabel}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="One-time discount included"/>
+                <apex:inputCheckbox value="{!wQuote.onetimeDiscountIncluded}" disabled="true"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.isAgencyVertical || wQuote.agencyReliefOfferDiscount}">
+                <apex:outputLabel value="Agency Relief Offer Discount"/>
+                <apex:inputCheckbox value="{!wQuote.agencyReliefOfferDiscount}" disabled="true"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Number of Teams or Processes"/>
+                <apex:outputText value="{!wQuote.numberOfTeamsStringValue}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.existingLegalTermsType}">
+                <apex:outputLabel value="{!IF(wQuote.legalTerms == 'EXISTING','Existing SaaS Agreement Effective Date','Existing MSA Effective Date')}"/>
+                <c:dateField value="{!wQuote.legalTermsEffectiveDate}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Reason For Discount"/>
+                <apex:outputText value="{!IF(ISBLANK(wQuote.discountReason),'-',wQuote.discountReason)}"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.isSubscription}" dataStyle="padding-top: 0px;">
+                <apex:outputLabel value="Tax Exempt"/>
+                <apex:inputCheckbox value="{!wQuote.taxExempt}" disabled="true"/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!wQuote.isSubscription && wQuote.TaxExempt == true}">
+                <apex:outputLabel value="Tax Exempt Certificate Id"/>
+                <apex:outputText value="{!IF(ISBLANK(wQuote.taxExemptCertificateId), '-', wQuote.taxExemptCertificateId)}"/>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection columns="1" rendered="{!wQuote.isAmendment}">
+            <c:AmendmentTypeSelect selectedType="{!wQuote.amendmentTypeAsString}" width="480px" height="150px"/>
+        </apex:pageBlockSection>
+    </apex:pageBlockSection>
+</apex:component>

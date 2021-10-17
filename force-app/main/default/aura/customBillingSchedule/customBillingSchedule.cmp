@@ -1,0 +1,119 @@
+<aura:component controller="CPQCustomBillingScheduleController" implements="lightning:isUrlAddressable" access="global">
+    <aura:attribute name="quote" type="CPQQuote"/>
+
+    <aura:attribute name="unallocatedSubscriptionAmount" type="Decimal"/>
+    <aura:attribute name="unallocatedOneTimeFeeAmount" type="Decimal"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="currencySymbol" type="String" default=""/>
+    <aura:attribute name="blockSaveMessage" type="String"/>
+
+    <lightning:navigation aura:id="navService"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.reInit}" />
+
+    <aura:if isTrue="{!v.preloader}">
+        <lightning:spinner/>
+    </aura:if>
+
+    <lightning:card iconName="standard:work_plan" title="Custom Billing Schedule">
+        <aura:set attribute="actions">
+            <lightning:buttonGroup>
+                <lightning:button variant="neutral"
+                                  onclick="{!c.navigateToQuote}"
+                                  label="Cancel"/>
+                <lightning:button variant="brand"
+                                  onclick="{!c.save}"
+                                  class="{!if(v.blockSaveMessage != '', 'custom-disabled', '')}">
+                    Save
+                    <aura:if isTrue="{!v.blockSaveMessage}">
+                        <lightning:helptext class="slds-p-left--x-small box-shadow-none slds-m-top--xxx-small"
+                                            iconName="utility:warning"
+                                            content="{!v.blockSaveMessage}"/>
+                    </aura:if>
+                </lightning:button>
+            </lightning:buttonGroup>
+        </aura:set>
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table--col-bordered">
+            <thead>
+                <tr class="slds-text-title--caps">
+                    <th>Invoice #</th>
+                    <th>Invoice Date</th>
+                    <th>Subscription Amount</th>
+                    <th>One-time Fees</th>
+                    <th>Invoice Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.quote.billingSchedules}" var="item" indexVar="index">
+                    <tr>
+                        <td>{!item.invoiceNumber}</td>
+                        <td>
+                            <lightning:input type="date"
+                                             variant="label-hidden"
+                                             placeholder="MM/dd/yyyy"
+                                             value="{!item.invoiceDate}"
+                                             dateStyle="short"
+                                             messageWhenBadInput="Date format should be 'MM/dd/yyyy'."
+                                             aura:id="dateInput"/>
+                        </td>
+                        <td>
+                            <aura:if isTrue="{!v.currencySymbol}">
+                                <ui:inputCurrency class="slds-input"
+                                                  updateOn="keyup"
+                                                  keyup="{!c.updateUnallocatedAmountAndValidate}"
+                                                  value="{!item.subscriptionAmount}"
+                                                  format="{!v.currencySymbol + '###,###,##0.00'}"/>
+                            </aura:if>
+                        </td>
+                        <td>
+                            <aura:if isTrue="{!v.currencySymbol}">
+                                <ui:inputCurrency class="slds-input"
+                                                  updateOn="keyup"
+                                                  keyup="{!c.updateUnallocatedAmountAndValidate}"
+                                                  value="{!item.oneTimeFeeAmount}"
+                                                  format="{!v.currencySymbol + '###,###,##0.00'}"/>
+                            </aura:if>
+                        </td>
+                        <td>
+                            <ui:outputCurrency class="slds-output"
+                                               value="{!item.subscriptionAmount + item.oneTimeFeeAmount}"
+                                               currencySymbol="{!v.currencySymbol}"/>
+                        </td>
+                        <td>
+                            <aura:if isTrue="{!index != 0}">
+                                <lightning:buttonIcon iconName="utility:delete" value="{!index}" onclick="{!c.removeRow}"/>
+                            </aura:if>
+                        </td>
+                    </tr>
+                </aura:iteration>
+                <tr>
+                    <td colspan="5">
+                    </td>
+                    <td class="slds-p-around--medium">
+                        <lightning:buttonIcon variant="brand" iconName="utility:add" onclick="{!c.addRow}"/>
+                    </td>
+                </tr>
+                <tr class="slds-color__background_gray-3">
+                    <td colspan="2" class="slds-text-align--right" style="color: rgb(81, 79, 77); font-weight: 700;">
+                        Unallocated Amount
+                    </td>
+                    <td>
+                        <ui:outputCurrency value="{!v.unallocatedSubscriptionAmount}"
+                                           currencySymbol="{!v.currencySymbol}"/>
+                    </td>
+                    <td>
+                        <ui:outputCurrency value="{!v.unallocatedOneTimeFeeAmount}"
+                                           currencySymbol="{!v.currencySymbol}"/>
+                    </td>
+                    <td>
+                        <ui:outputCurrency value="{!v.unallocatedSubscriptionAmount + v.unallocatedOneTimeFeeAmount}"
+                                           currencySymbol="{!v.currencySymbol}"/>
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </lightning:card>
+</aura:component>

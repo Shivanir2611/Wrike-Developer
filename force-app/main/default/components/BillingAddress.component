@@ -1,0 +1,75 @@
+<apex:component controller="BillingAddressComponentController">
+    <apex:attribute name="disabled"
+                    type="Boolean"
+                    required="false"
+                    default="false"
+                    description="Makes all fields read only."/>
+    <apex:attribute name="emailAllwaysEditable"
+                    required="false"
+                    type="Boolean"
+                    default="false"
+                    description="Disables read-only mode for email."/>
+    <apex:attribute name="header"
+                    type="String"
+                    required="false"
+                    default=""
+                    description="Section header."/>
+    <apex:attribute name="address"
+                    assignTo="{!billingAddress}"
+                    type="BillingInfo"
+                    required="true"
+                    description="Billing address instance."/>
+    <apex:attribute name="updateCallback"
+                    type="String"
+                    required="true"
+                    description="Function to call after billing info changed."/>
+
+    <apex:pageBlockSection title="{!header}" showHeader="{!IF(header=='',false,true)}"
+                           columns="1"
+                           collapsible="false"
+                           id="billingInputFields">
+        <apex:outputText value="{!billingAddress.cardNumber}" label="Card Number" rendered="{!disabled && billingAddress.cardNumber != null}"/>
+        <apex:outputText value="{!billingAddress.cardExpirationMonth}/{!billingAddress.cardExpirationYear}"
+                         label="Expiration" rendered="{!disabled && billingAddress.cardExpirationYear != null}"/>
+        <apex:outputText value="{!billingAddress.firstName}" label="First Name" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.lastName}" label="Last Name" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.email}" label="Email" rendered="{!disabled && NOT(emailAllwaysEditable)}"/>
+        <apex:outputText value="{!billingAddress.countryFullName}" label="Country" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.stateFullName}" label="State" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.city}" label="City" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.address1}" label="Address Line 1" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.address2}" label="Address Line 2" rendered="{!disabled}"/>
+        <apex:outputText value="{!billingAddress.zip}" label="Zip/Postal Code" rendered="{!disabled}"/>
+        <apex:inputText value="{!billingAddress.firstName}" label="First Name" rendered="{!NOT(disabled)}"
+                        onchange="billingAddressOnChange();" tabindex="1" maxlength="100" id="requiredFirstName" />
+        <apex:inputText value="{!billingAddress.lastName}" label="Last Name" rendered="{!NOT(disabled)}"
+                        onchange="billingAddressOnChange();" tabindex="2" maxlength="100" id="requiredLastName"/>
+        <apex:inputText value="{!billingAddress.email}" label="Email" rendered="{!NOT(disabled) || emailAllwaysEditable}"
+                        onchange="billingAddressOnChange();" tabindex="3" maxlength="80" id="requiredEmail"/>
+        <apex:selectList size="1" value="{!billingAddress.country}" label="Country" id="requiredCountry"
+                         tabindex="4" rendered="{!NOT(disabled)}">
+            <apex:selectOptions value="{!countries}"/>
+            <apex:actionSupport event="onchange" action="{!null}" reRender="billingInputFields" oncomplete="billingAddressOnChange();"/>
+        </apex:selectList>
+        <apex:selectList size="1" value="{!billingAddress.state}" label="State/Province" id="requiredState"
+                         tabindex="5" rendered="{!NOT(disabled) && states.size > 0}" onchange="billingAddressOnChange();">
+            <apex:selectOptions value="{!states}"/>
+        </apex:selectList>
+        <apex:inputText value="{!billingAddress.city}" label="City" rendered="{!NOT(disabled)}"
+                        onchange="billingAddressOnChange();" tabindex="6" maxlength="40" id="requiredCity"/>
+        <apex:inputText value="{!billingAddress.address1}" label="Address Line 1" rendered="{!NOT(disabled)}"
+                        onchange="billingAddressOnChange();" tabindex="7" maxlength="255" id="requiredAddress1"/>
+        <apex:inputText value="{!billingAddress.address2}" label="Address Line 2" rendered="{!NOT(disabled)}" tabindex="8" maxlength="255"/>
+        <apex:inputText value="{!billingAddress.zip}" label="Zip/Postal Code" rendered="{!NOT(disabled)}"
+                        onchange="billingAddressOnChange();" tabindex="9" maxlength="20" id="requiredZip"/>
+    </apex:pageBlockSection>
+
+    <script>
+        var billingAddressOnChange = function() {
+            var updateCallback = {!JSINHTMLENCODE(updateCallback)};
+            if(typeof updateCallback === "function") {
+                updateCallback();
+            }
+        }
+    </script>
+</apex:component>

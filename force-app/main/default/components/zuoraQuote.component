@@ -1,0 +1,410 @@
+<apex:component >
+    <apex:attribute name="ctrl" type="WrikeQuotePdfTemplateController" required="true" description="Parent page controller"/>
+    <apex:attribute name="creditCardPage" type="Boolean" description="Defines usage on Credit Card payment page."/>
+    <div style="width:100%;position:relative">
+        <table style="width:100%;">
+            <tbody>
+                <tr>
+                    <td style="vertical-align:bottom">
+                        <apex:image url="{!URLFOR($Resource.quoteWrikeLogo)}" width="125pt"/>
+                        <br/>
+                        <br/>
+                        <table class="info-table">
+                            <tbody>
+                            <tr>
+                                <td style="white-space:nowrap">Prepared By</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td class="bold">{!ctrl.quote.salesName}</td>
+                            </tr>
+                            <tr>
+                                <td style="white-space:nowrap">Email</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td class="bold">{!ctrl.quote.salesEmail}</td>
+                            </tr>
+                            <tr style="display:{!IF(ISBLANK(ctrl.quote.salesPhone),'none','')}">
+                                <td style="white-space:nowrap">Phone</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td class="bold">{!ctrl.quote.salesPhone}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td style="vertical-align:bottom;max-width:30%">
+                        <div style="display:inline-block;float:right;white-space:nowrap">
+                            <table class="info-table unicode">
+                                <tbody>
+                                    <tr>
+                                        <td>Order Number</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td>{!ctrl.quote.quoteNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Customer</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td>{!ctrl.quote.companyName}</td>
+                                    </tr>
+                                    <tr style="display:{!IF(ISBLANK(ctrl.quote.companyAddress),'none','')}">
+                                        <td>Address</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td style="white-space:normal">{!ctrl.quote.companyAddress}</td>
+                                    </tr>
+                                    <tr style="display:{!IF(ISBLANK(ctrl.quote.contactEmail),'none','')}">
+                                        <td>Email</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td>{!ctrl.quote.contactEmail}</td>
+                                    </tr>
+                                    <tr style="display:{!IF(ISBLANK(ctrl.quote.wrikeAccountId),'none','')}">
+                                        <td>Wrike Account ID</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td>{!ctrl.quote.wrikeAccountId}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Effective Date</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td><c:dateField value="{!ctrl.quote.effectiveDate}" format="long"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Order Expiration</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td><c:dateField value="{!ctrl.quote.validUntil}" format="long"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br/>
+    <c:zuoraQuoteProducts preview="{!ctrl.invoicePreview}"
+                          quoteBundle="{!ctrl.quoteBundle}"
+                          quote="{!ctrl.quote}"
+                          noListPrice="{!ctrl.noListPrice}"/>
+    <br/>
+    <apex:outputPanel >
+        <strong style="color:#505050">General Terms:</strong>
+        <br/>
+        <ol class="terms-list">
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.isSubscription}">
+                <li>
+                    <strong>Initial Term:</strong>
+                    &nbsp;{!ctrl.quote.newTerm} Month{!IF(ctrl.quote.newTerm > 1,'s','')}
+                    &nbsp;(<c:dateRange startDate="{!ctrl.quote.effectiveDate}"
+                                        endDate="{!ctrl.quote.termEndDate}"/>)
+                </li>
+            </apex:outputPanel>
+            <li>
+                <apex:outputPanel layout="none" rendered="{!NOT(ctrl.quoteBundle.oneTimeItems.empty)}">
+                    <strong>Billing Frequency:</strong>
+                    <br/>
+                    <ul style="padding-top:2pt">
+                        <li>
+                            <strong>One-Time Fees:</strong>&nbsp;
+                            Upfront and in advance
+                        </li>
+                        <li>
+                            <strong>Subscription Fees:</strong>&nbsp;
+                            <c:billingPeriodName zuoraBillingPeriod="{!ctrl.quote.billingPeriodName}"/>, upfront and in advance
+                        </li>
+                    </ul>
+                </apex:outputPanel>
+                <apex:outputPanel layout="none" rendered="{!ctrl.quoteBundle.oneTimeItems.empty}">
+                    <strong>Billing Frequency:</strong>&nbsp;
+                    <c:billingPeriodName zuoraBillingPeriod="{!ctrl.quote.billingPeriodName}"/>, upfront and in advance
+                </apex:outputPanel>
+            </li>
+            <li>
+                <strong>Payment Terms:</strong>&nbsp;{!ctrl.quote.paymentTerm}
+            </li>
+            <li>
+                <strong>Taxes:</strong>&nbsp;Fees do not include applicable state and local taxes (if any)
+                and Customer acknowledges that applicable taxes (if any) are the responsibility of Customer.
+                <apex:outputPanel layout="none" rendered="{!ctrl.quote.contact.mailingCountryCode == 'JP'}">
+                    <strong>Reverse Charge Mechanism of Japanese consumption tax shall be applied to these transactions.</strong>
+                </apex:outputPanel>
+            </li>
+            <apex:outputPanel layout="none" rendered="{!ctrl.deploymentLanguageData.display}">
+                <li>
+                    <strong>Professional Services:</strong>&nbsp;
+                    <c:deploymentLegalLanguage ctrl="{!ctrl}"/>
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikePerformancePackage}">
+                <li>
+                    <strong>Wrike Performance Package</strong> includes Wrike Analyze and Wrike Integrate.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeAnalyze}">
+                <li>
+                    <strong>Wrike Analyze:</strong>&nbsp;Wrike Analyze allows visibility into Wrike workspace data
+                    in interactive analytics boards. Customer can create boards using the pre-built templates,
+                    or start from scratch and create a custom analytics board. Dashboards and metrics surfaced
+                    through the Service are for illustrative purposes only and Wrike will not be responsible
+                    for the actions or inactions of Customer's interpretation of such data.
+                    <a target="_blank" href="https://help.wrike.com/hc/en-us/articles/360036508894-Wrike-Analyze">https://help.wrike.com/hc/en-us/articles/360036508894-Wrike-Analyze</a>
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeMarketingInsightsStandard}">
+                <li>
+                    <strong>Marketing Insights Standard:</strong>&nbsp;Marketing Insights Standard accounts are provisioned 
+                    with up to 20 million data rows per year, with data pulls refreshed every 24 hours, and usage of up to 
+                    50 active connectors at a time. For additional information and associated features of Wrike Marketing Insights, 
+                    please reference the information described on the Wrike for Marketers documentation page 
+                    <a target="_blank" href="https://help.wrike.com/hc/en-us/articles/210412605-Wrike-for-Marketers">https://help.wrike.com/hc/en-us/articles/210412605-Wrike-for-Marketers</a>.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeMarketingInsightsEnhanced}">
+                <li>
+                    <strong>Marketing Insights Enhanced:</strong>&nbsp;With this purchased add-on, accounts add 
+                    additional data processing and storage capacity in 100 million row increments for the duration 
+                    of the then-current Subscription, where each row represents an aggregate combination of unique 
+                    dimensions and metrics, i.e.: channel/geo/device/medium ad spend. Marketing Insights Enhanced 
+                    also provides unlimited access to active connectors and up to hourly refresh rates of the data (subject to the availability of the API vendor).
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeIntegrate}">
+                <li>
+                    <strong>Wrike Integrate:</strong>&nbsp;<c:wrikeIntegrateTerms />
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeIntegrateStandardOrEnhanced}">
+                <li>
+                    <strong>Wrike Integrate Standard or Enhanced:</strong>&nbsp;<c:wrikeIntegrateStandardTerms />
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.invoicePreview.containsWrikeLock}">
+                <li>
+                    <strong>Wrike Lock:</strong>&nbsp;Unless otherwise agreed between Wrike and Customer, encryption of
+                    Customer’s Account can only happen after the encrypted key is created by Customer in Amazon Key
+                    Management (KMS) and Wrike is granted access to encrypt/decrypt as described in
+                    <a target="_blank" href="https://help.wrike.com/hc/en-us/articles/360012347934-Wrike-Lock#setup">https://help.wrike.com/hc/en-us/articles/360012347934-Wrike-Lock#setup</a>.
+                    Additionally, Customer acknowledges that once the AWS KMS key pair is setup and the public key is
+                    configured with Wrike Lock, Wrike will no longer be managing the encryption key lifecycle. Customer
+                    will have full responsibility for creation, management, and backup of keys. In the case of key
+                    corruption or loss, Wrike will not be able to provide any access to data or backup key pairs.
+                </li>
+                <li>
+                    <strong>Wrike Lock &amp; Wrike Analyze:</strong>&nbsp;If Wrike Analyze and Wrike Lock is purchased and enabled,
+                    certain data in the Analytics database (separate from the main Wrike database)
+                    will not be encrypted with a Customer-Managed Key. The fields in the Analytics database are listed at
+                    <a target="_blank" href="https://help.wrike.com/hc/en-us/articles/360036508894-Wrike-Analyze">https://help.wrike.com/hc/en-us/articles/360036508894-Wrike-Analyze</a>.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.additionalUsers}">
+                <li>
+                    <strong>Additional Users:</strong>&nbsp;During the Subscription Term, Customer may purchase additional
+                    Users at the above-listed effective rate, pro-rated for the remainder of the Subscription Term.
+                    Any increase in the committed volume of Users shall be for the remainder of the Subscription Term
+                    regardless of usage and the committed volume of Users may not be reduced during the Subscription Term.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.autoRenewalRemoval}">
+                <li>
+                    <strong>Renewal Term(s):</strong>&nbsp;This Order Form will not automatically renew. For Services
+                    to continue past the last date of the Subscription above, a separate Order Form signed
+                    between Parties is required.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.renewalPriceProtection != null}">
+                <li>
+                    <strong>Price Protection:</strong>&nbsp;Wrike may increase the Fees due under Order Forms for the
+                    applicable Renewal Term (if any) by providing notice to Customer of such increase at least
+                    sixty (60) days before the commencement of the upcoming Renewal Term, provided that the per-unit
+                    Subscription Fees shall be increased by no more than {!CASE(ctrl.quote.renewalPriceProtection,
+                        '5% YoY increase', 'five-percent (5%) of the Subscription Fees of the prior Subscription Term',
+                        '3% YoY increase', 'three-percent (3%) of the Subscription Fees of the prior Subscription Term',
+                        'YoY CPI Average', 'the then-current CPI average', '')}.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.termsDataCenter != null}">
+                <li>
+                    <strong>EU Data Center:</strong>&nbsp;Wrike shall store, manage, and maintain Customer Data in Wrike's Primary
+                    European Data Center instead of Wrike's US Data Center. Both Parties acknowledge and agree that Wrike's
+                    professional services and/or support staff may be required to access or transfer Customer Data outside of
+                    the EU zone as part of the delivery of the Services to Customer, and, Subscription add-ons powered by
+                    third-parties (if any, if purchased as outlined in an Order Form between Parties) may require transfer of
+                    Customer Data outside of the EU zone for such add-on to work as intended. Customer authorizes Wrike to make
+                    international transfers of Customer Data for only the foregoing limited purposes so long as applicable law
+                    for such transfers is respected.
+                </li>
+            </apex:outputPanel>
+            <apex:outputPanel layout="none" rendered="{!ctrl.quote.agencyReliefOfferDiscount && ctrl.quote.isAgencyVertical}">
+                <li>
+                    <strong>Agency Relief Offer Discount:</strong> This Order Form includes special one-time discounted
+                    pricing applicable to this Order Form only.
+                </li>
+            </apex:outputPanel>
+        </ol>
+        <apex:outputPanel rendered="{!ctrl.renderAdditionalTerms}">
+            <br/>
+            <strong style="color:#505050">Additional Terms:</strong>
+            <br/>
+            <ol class="terms-list">
+                <apex:outputPanel layout="none" rendered="{!ctrl.quote.publicityRightsRemoval}">
+                    <li>
+                        <strong>Publicity:</strong>&nbsp;Both Parties acknowledge and agree that Publicity of the Governing Terms
+                        is updated as follows. "Neither Party may reference the name and logo of the other Party in its
+                        public marketing lists of customers or vendors without the prior written consent of the other Party,
+                        which may be withheld or withdrawn by the other Party for any or no reason."
+                    </li>
+                </apex:outputPanel>
+                <apex:outputPanel layout="none" rendered="{!ctrl.quote.coMarketingAddition}">
+                    <li>
+                        <strong>Co-Marketing Discount:</strong>&nbsp;In exchange for the special incentive pricing above,
+                        Customer agrees to use good-faith efforts to participate in Wrike’s Co-Marketing Program, in which
+                        Customer agrees to participate in jointly with Wrike and Wrike agrees to pay any and all production
+                        costs (if any). Wrike’s Co-Marketing Program include co-marketing and promotional activities like
+                        Wrike’s use of Customer’s name and logo on Wrike’s website and marketing materials, Customer
+                        providing a quotation or testimonial for Wrike’s use, and/or Customer contributing to a Wrike blog
+                        post, industry webinar, published case study, and/or joint press release. Wrike hereby grants
+                        Customer the right to use and distribute any and all of the foregoing co-marketing and promotional
+                        elements, provided Customer pays for its own applicable distribution fees (if any). Customer hereby
+                        permits Wrike to include Customer’s name and logo as a Wrike customer on Wrike’s website and other
+                        marketing and financial reporting materials; provided, however, that Customer retains sole and
+                        exclusive ownership of Customer’s name, logo and other trademarks.
+                    </li>
+                </apex:outputPanel>
+                <apex:outputPanel layout="none" rendered="{!ctrl.quote.governingLaw != null}">
+                    <li>
+                        <strong>Governing Law/Venue:</strong>&nbsp;Both Parties acknowledge and agree that Governing Law/Venue of
+                        the Governing Terms is updated as follows. "Any disputes arising out of or related hereto shall be
+                        governed by and construed in accordance with the laws of {!ctrl.quote.governingLaw}, without
+                        giving effect to its conflicts of laws rules, the United Nations Convention on the International
+                        Sale of Goods, or the Uniform Computer Information Transactions Act. Any dispute, controversy or
+                        claim arising related to this Agreement, shall be finally determined by arbitration conducted by the
+                        Judicial Arbiter Group (or, if unavailable, then such other similar group that can provide former
+                        judges as arbiters) in accordance with the Rules of Arbitration of the International Chamber of
+                        Commerce applicable to commercial disputes by a single arbiter who is (a) fluent in written and
+                        spoken English, the language governing this Agreement, and (b) skilled and experienced with cloud or
+                        internet services. The place of such arbitration shall be where the principal place of business is
+                        of that who is defending the claim or who is the defendant in the action. The judgment of the
+                        arbitrator shall be final, non-appealable (to the extent not inconsistent with applicable law) and
+                        binding upon the Parties and may be entered in any court of competent jurisdiction. Notwithstanding
+                        any provision in this Agreement, either Party may request any judicial, administrative, or other
+                        authority in any other jurisdiction to order any provisional or conservatory measure, including
+                        injunctive relief, specific performance, or other equitable relief, prior to the institute of legal
+                        or arbitration proceedings, or during the proceedings, for the preservation of its rights and
+                        interests or to enforce specific terms that are suitable for provisional remedies."
+                    </li>
+                </apex:outputPanel>
+            </ol>
+        </apex:outputPanel>
+        <br/>
+        <apex:outputPanel rendered="{!ctrl.quote.onetimeDiscountIncluded}">
+            <strong>Special Offer:</strong> Special incentive pricing is included in this Order Form, valid only
+            for this Order Form and upon Wrike's receipt of Customer's signature on or
+            before&nbsp;<c:dateField value="{!ctrl.quote.validUntil}"/>.
+            <br/>
+        </apex:outputPanel>
+        <br/>
+        <apex:outputPanel rendered="{!ctrl.quote.paymentTermDueDays == 0}">
+            * Should Customer elect to pay via credit card, 
+            all Fees will be charged immediately upon issuance of the applicable invoice (including future invoices) with the credit card on file.
+            <apex:outputPanel layout="none" rendered="{!NOT(creditCardPage) && NOT(ctrl.quote.outbound)}">
+                Click here or copy and paste this link to securely process your credit card information:<br/>
+                <apex:variable var="quoteLink" value="{!ctrl.quote.creditCardLink}"/>
+                <a target="_blank" href="{!quoteLink}">{!quoteLink}</a>
+            </apex:outputPanel>
+            <br/>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!NOT(creditCardPage)}">
+            <br/>
+            <div>
+                <center>[ rest of page intentionally blank / signatures follow ]</center>
+            </div>
+            <div style="page-break-after:always;"></div>
+            <br/>
+            <br/>
+            <div>
+                <span class="bold">Governing Terms and Conditions</span>
+                <br/>
+                <apex:outputPanel rendered="{!ctrl.quote.legalTerms == 'DEFAULT'}">
+                    This order form covers the Wrike Products described herein and is governed by Wrike&#39;s Corporate Subscriber Terms and Conditions available online at
+                    <a target="_blank" href="https://www.wrike.com/terms/">https://www.wrike.com/terms/</a>
+                    and our Privacy Policy available online at <a target="_blank" href="https://www.wrike.com/security/privacy/">https://www.wrike.com/security/privacy/</a>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!ctrl.quote.legalTerms == 'ONLINE_MSA'}">
+                    This Order Form is for the Wrike products and services outlined herein
+                    and is governed by the online Terms &amp; Conditions found
+                    at <a target="_blank" href="https://learn.wrike.com/enterprise-wmsa/">https://learn.wrike.com/enterprise-wmsa/</a>,
+                    provided that in the event of a conflict between this Order Form and the Terms &amp; Conditions take place,
+                    this Order Form will take precedence and prevail as to the conflict.
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!ctrl.quote.legalTerms == 'EXISTING'}">
+                    This Order Form is for the Wrike products and services outlined herein
+                    and is governed by the agreed-upon Terms &amp; Conditions between Parties
+                    from&nbsp;<c:dateField value="{!ctrl.quote.legalTermsEffectiveDate}"/>,
+                    provided that in the event of a conflict between this Order Form and the Terms &amp; Conditions take place,
+                    this Order Form will take precedence and prevail as to the conflict.
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!ctrl.quote.legalTerms == 'EXISTING_MSA'}">
+                    This Order Form is for the Wrike products and services outlined herein
+                    and is governed by the agreed-upon Master Agreement between Parties
+                    from&nbsp;<c:dateField value="{!ctrl.quote.legalTermsEffectiveDate}"/>,
+                    provided that in the event of a conflict between this Order Form and the Master Agreement take place,
+                    this Order Form will take precedence and prevail as to the conflict
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!ctrl.quote.legalTerms == 'NEW' || ctrl.quote.legalTerms == 'NEW_MSA'}">
+                    This Order Form is for the Wrike products and services outlined herein
+                    and is governed by the agreed-upon Master Agreement between Parties
+                    (signed separately by both Parties or attached hereto),
+                    provided that in the event of a conflict between this Order Form and the Master Agreement take place,
+                    this Order Form will take precedence and prevail as to the conflict.
+                </apex:outputPanel>
+            </div>
+            <br/>
+            <br/>
+            Wrike, Inc. ("<b>Wrike</b>") and the entity outlined above ("<b>Customer</b>") may be referred to in this Order Form
+            individually as a "<b>Party</b>" and collectively as the "<b>Parties</b>." For good and valuable consideration,
+            the receipt and sufficiency of which are hereby acknowledged, Wrike agrees to the terms outlined herein
+            by offering this Order Form to Customer if Customer accepts the terms of this Order Form by signing below
+            on or before the above-referenced Expiration Date. Upon Customer’s signature,
+            the Parties agree to the terms and conditions of this Order Form.
+            <br/>
+            <br/>
+            <table class="signature-table">
+                <tbody>
+                    <tr>
+                        <th style="width:20%">
+                            <strong>Customer</strong>
+                        </th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th style="width:20%">
+                            Authorized Signature:
+                        </th>
+                        <td>
+                            <span style="color:#FFFFFF">&nbsp;&nbsp;\s1\</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:20%">
+                            Name:
+                        </th>
+                        <td>
+                            <span style="color:#FFFFFF">\n1\</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:20%">
+                            Title:
+                        </th>
+                        <td>
+                            <span style="color:#FFFFFF">\t1\</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="width:20%">
+                            Date:
+                        </th>
+                        <td>
+                            <span style="color:#FFFFFF">\d1\</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </apex:outputPanel>
+    </apex:outputPanel>
+</apex:component>

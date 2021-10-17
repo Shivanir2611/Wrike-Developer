@@ -1,0 +1,37 @@
+<apex:page standardController="Opportunity" extensions="OpportunityWrikeQuotesController" lightningStylesheets="true">
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageBlockTable value="{!WrikeQuotesWithDocuSign}" var="wQuote">
+                <apex:column headerValue="Created Date" value="{!wQuote.CreatedDateAsString}" />
+                <apex:column headerValue="Primary">
+                    <apex:image rendered="{!wQuote.primary}" value="/img/checkbox_checked.gif"/>
+                    <apex:image rendered="{!NOT(wQuote.primary)}" value="/img/checkbox_unchecked.gif"/>
+                </apex:column>
+                <apex:column headerValue="Quote Name">
+                    <apex:outputLink value="/{!wQuote.id}" target="_top" rendered="{!$User.UIThemeDisplayed != 'Theme4d'}">
+                         {!wQuote.name}
+                    </apex:outputLink>
+                    <apex:outputLink value="/one/one.app#/alohaRedirect/{!wQuote.id}" target="_top" rendered="{!$User.UIThemeDisplayed == 'Theme4d'}">
+                         {!wQuote.name}
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Term" value="{!wQuote.newTerm}" />
+                <apex:column headerValue="Valid Until" value="{!wQuote.ValidUntilAsString}" />
+                <apex:column headerValue="Delta MRR" >
+                    <apex:outputText value="{0,number,###,###,##0.00}">
+                        <apex:param value="{!wQuote.deltaMrr}"/>
+                    </apex:outputText>
+                </apex:column>
+                <apex:column headerValue="Status" value="{!wQuote.status}" />
+                <apex:column headerValue="Pdf">
+                    <apex:outputLink value="/{!wQuote.pdfId}" target="_blank" rendered="{!wQuote.pdfId != null}">Pdf</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Signed Pdf">
+                    <apex:outputLink value="/{!wQuote.signedPdfId}" target="_blank" rendered="{!wQuote.signedPdfId != null}">Signed Pdf</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="DocuSign Status" value="{!wQuote.docuSignEnvelopeStatus}" />
+            </apex:pageBlockTable>
+            <c:pagination ctrl="{!controller}"/>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,27 @@
+<aura:component controller="CPQQuotePartnerSelectionController">
+    <aura:attribute name="quoteId" type="Id" required="true"/>
+    <aura:attribute name="selectedItem" type="LookupInputSearchResultItem"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String" default=""/>
+
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand"/>
+        </aura:if>
+        <div style="padding: 1rem;">
+            <c:lookupInput onSearch="{!c.lookupSearch}" selectedItem="{!v.selectedItem}"/>
+            <aura:if isTrue="{!v.errorMessage}">
+                <ui:message severity="error" class="slds-m-horizontal--none slds-m-top--small slds-m-bottom--none">
+                        {!v.errorMessage}
+                </ui:message>
+            </aura:if>
+        </div>
+
+        <footer class="slds-modal__footer">
+            <lightning:button label="Cancel" onclick="{!c.close}"/>
+            <lightning:button label="Update" onclick="{!c.update}" disabled="{!empty(v.selectedItem)}" variant="brand"/>
+        </footer>
+    </div>
+</aura:component>

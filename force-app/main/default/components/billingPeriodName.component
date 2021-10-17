@@ -1,0 +1,16 @@
+<apex:component >
+    <apex:attribute name="zuoraBillingPeriod"
+                    type="String"
+                    required="true"
+                    description="BillingPeriod of Zuora RatePlanCharge"/>
+    <apex:variable var="billingPeriodName" value="{!CASE(zuoraBillingPeriod,
+            'Month','Monthly',
+            'Quarter','Quarterly',
+            'Semi-Annual','Semi-Annually',
+            'Annual','Annually',
+            'Eighteen Months','Custom 18 months',
+            'Two Years','Custom 24 months',
+            'Three Years','Custom 36 months',
+            'Five years','Custom 60 months','')}"/>
+    {!billingPeriodName}
+</apex:component>

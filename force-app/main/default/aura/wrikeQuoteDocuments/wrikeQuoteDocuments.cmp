@@ -1,0 +1,74 @@
+<aura:component controller="CPQWrikeQuoteDocumentsController" implements="flexipage:availableForRecordHome,force:hasRecordId">
+    <aura:attribute name="documents" type="List"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <lightning:navigation aura:id="navService"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <lightning:card class="highlights slds-clearfix slds-page-header slds-page-header_record-home slds-p-around--none">
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand" class="slds-is-fixed"/>
+        </aura:if>
+        <aura:set attribute="title">
+            <div style="display: flex">
+                <div class="slds-media">
+                    <lightning:icon iconName="standard:file" size="small"/>
+                </div>
+                <div class="slds-media__body slds-m-left--small slds-align-middle" style="font-size: 1rem; font-weight: bold;">
+                    Fully Executed Documents
+                </div>
+            </div>
+        </aura:set>
+        <aura:set attribute="actions">
+            <div class="fileUploader">
+                <lightning:fileUpload label=""
+                                      name="fileUploader"
+                                      multiple="true"
+                                      onuploadfinished="{!c.handleUploadFinished}"/>
+            </div>
+        </aura:set>
+        <aura:if isTrue="{!v.errorMessage}">
+            <ui:message title="Error" severity="error">
+                    {!v.errorMessage}
+            </ui:message>
+        </aura:if>
+        <table class="slds-table slds-table--bordered slds-table--striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Document</th>
+                    <th>Type</th>
+                    <th>Upload Date</th>
+                    <th>Uploaded By</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.documents}" var="document" indexVar="index">
+                    <tr>
+                        <td>{!index + 1}</td>
+                        <td>
+                            <a onclick="{!c.previewFile}" id="{!document.contentDocumentId}">{!document.name}</a>
+                        </td>
+                        <td>{!document.type}</td>
+                        <td>{!document.uploadDate}</td>
+                        <td>
+                            <aura:if isTrue="{!document.uploader != null}">
+                                <a href="{!'/lightning/r/User/'+ document.uploader.Id + '/view'}">{!document.uploader.Name}</a>
+                            </aura:if>
+                        </td>
+                        <td>
+                            <aura:if isTrue="{!document.deletionAllowed}">
+                                <lightning:buttonMenu onselect="{!c.handleTableItemSelect}" iconSize="small" variant="border-filled" menuAlignment="right">
+                                    <lightning:menuItem value="{!join(',', document.id, 'Delete')}" label="Delete"/>
+                                </lightning:buttonMenu>
+                            </aura:if>
+                        </td>
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </lightning:card>
+</aura:component>

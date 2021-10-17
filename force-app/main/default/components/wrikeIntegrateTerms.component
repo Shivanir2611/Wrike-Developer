@@ -1,0 +1,14 @@
+<apex:component >
+    Wrike Integrate enables customers to build workflows and integrations across business tools.
+    Powered by the Workato automation platform, Customer can use Wrike Integrate to connect Wrike to 400+ cloud apps
+    or on-premises apps, and even automate actions within Wrike (i.e. a Wrike to Wrike integration).
+    While Customer is not limited in the number of Tasks with Wrike Integrate, Wrike may initiate reasonable
+    restrictions on Customer should Customer's number of Tasks be excessive.
+    Wrike will provide Customer with prior written notice of such instance and Parties will work in good faith
+    to mitigate excessive usage. A "Task" in this context is a usage metric that is counted every time Wrike Integrate
+    requests a piece of data from another platform/software or performs an action.
+    By purchasing Wrike Integrate, Customer acknowledges that Personal Data may be transferred out
+    of the EU (if applicable) and into the US. Workato's terms of service and privacy
+    policy are found at
+    <a target="_blank" href="https://www.workato.com/legal/terms-of-service">https://www.workato.com/legal/terms-of-service</a>.
+</apex:component>

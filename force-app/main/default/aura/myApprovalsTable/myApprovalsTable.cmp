@@ -1,0 +1,92 @@
+<aura:component controller="CPQMyApprovalsTableController" implements="flexipage:availableForAllPageTypes">
+    <aura:attribute name="myApprovals" type="Object" default="[]"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <lightning:navigation aura:id="navService"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <aura:if isTrue="{!v.preloader}">
+        <lightning:spinner variant="brand" class="slds-is-fixed"/>
+    </aura:if>
+
+    <aura:if isTrue="{!v.errorMessage}">
+        <ui:message title="Error" severity="error">
+                {!v.errorMessage}
+        </ui:message>
+    </aura:if>
+
+    <lightning:card class="highlights slds-clearfix slds-page-header_record-home slds-p-around--none">
+        <aura:set attribute="title">
+            <div class="slds-media__body slds-align-middle" style="font-size: 1rem; font-weight: bold;">
+                Items To Approve
+            </div>
+        </aura:set>
+        <div class="slds-card__body">
+            <aura:if isTrue="{!empty(v.myApprovals)}">
+                <div style="color: rgb(62, 62, 60); text-align: center;" class="slds-p-bottom--medium slds-card__body--inner">
+                    No approval requests need your attention right now.
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!not(empty(v.myApprovals))}">
+                <table class="slds-table slds-table--bordered slds-table--striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Quote #</th>
+                            <th>MRR</th>
+                            <th>Owner</th>
+                            <th>Opportunity</th>
+                            <th>Status</th>
+                            <th>Total Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.myApprovals}" var="myApproval" indexVar="index">
+                            <tr>
+                                <td>{!index + 1}</td>
+                                <td>
+                                    <p class="slds-truncate" style="max-width: 170px">
+                                        <a href="{!'/lightning/r/Opportunity/'+ myApproval.quoteId + '/view'}">{!myApproval.quoteName}</a>
+                                    </p>
+                                </td>
+                                <td>
+                                    <lightning:formattedNumber value="{!myApproval.quoteMRR}"
+                                                               currencyCode="{!myApproval.currencyCode}"
+                                                               style="currency"
+                                                               currencyDisplayAs="symbol"/>
+                                </td>
+                                <td>{!myApproval.quoteOwner}</td>
+                                <td>
+                                    <p class="slds-truncate" style="max-width: 170px">
+                                        <a href="{!'/lightning/r/Opportunity/'+ myApproval.opportunityId + '/view'}">{!myApproval.opportunityName}</a>
+                                    </p>
+                                </td>
+                                <td>{!myApproval.quoteStatus}</td>
+                                <td>
+                                    <lightning:formattedNumber value="{!myApproval.quoteTotalAmount}"
+                                                               currencyCode="{!myApproval.currencyCode}"
+                                                               style="currency"
+                                                               currencyDisplayAs="symbol"/>
+                                </td>
+                                <td>
+                                    <lightning:buttonMenu alternativeText="Approval Menu"
+                                                          class="slds-button_last"
+                                                          onselect="{!c.onApprovalMenuSelect}"
+                                                          menuAlignment="center"
+                                                          variant="border-filled"
+                                                          iconSize="x-small">
+                                        <lightning:menuItem value="{!'approve;' + myApproval.quoteId}" label="Approve"/>
+                                        <lightning:menuItem value="{!'reject;' + myApproval.quoteId}" label="Reject"/>
+                                    </lightning:buttonMenu>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </aura:if>
+        </div>
+    </lightning:card>
+</aura:component>

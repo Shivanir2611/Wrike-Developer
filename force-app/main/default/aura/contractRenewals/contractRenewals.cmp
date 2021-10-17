@@ -1,0 +1,86 @@
+<aura:component implements="lightning:isUrlAddressable,flexipage:availableForAllPageTypes"
+                controller="ContractRenewalsController"
+                access="global">
+    <aura:attribute name="contracts" type="Contract[]"/>
+    <aura:attribute name="preloader" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <div class="slds-is-relative">
+        <br/>
+        <aura:if isTrue="{!v.preloader}">
+            <lightning:spinner variant="brand" class="slds-is-fixed"/>
+        </aura:if>
+        <lightning:card variant="Narrow"
+                        title="Contract Renewals"
+                        iconName="standard:opportunity"
+                        class="slds-p-around--small">
+            <table class="slds-table slds-table--bordered slds-table--striped">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Account</th>
+                    <th>Contract</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Grace Period Start</th>
+                    <th>Wrike Account ID</th>
+                    <th>Renewal Opportunity</th>
+                    <th>Stage</th>
+                    <th>Renewal Quote</th>
+                    <th>Quote Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <aura:iteration items="{!v.contracts}" var="contract">
+                    <tr>
+                        <td>
+                            <lightning:button variant="base"
+                                              label="View"
+                                              value="{!contract.Id}"
+                                              onclick="{!c.handleShowModal}"/>
+                        </td>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/Account/' + contract.Account.Id + '/view'}"
+                               class="truncated-name">{!contract.Account.Name}</a>
+                        </td>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/Contract/' + contract.Id + '/view'}"
+                               class="truncated-name">{!contract.ContractNumber}</a>
+                        </td>
+                        <td>
+                            <lightning:formattedDateTime value="{!contract.StartDate}"/>
+                        </td>
+                        <td>
+                            <lightning:formattedDateTime value="{!contract.EndDate}"/>
+                        </td>
+                        <td>
+                            <lightning:formattedDateTime value="{!contract.SBQQ__RenewalOpportunity__r.Wrike_Data__r.GracePeriodStartDate__c}"/>
+                        </td>
+                        <td>
+                            {!contract.Wrike_Account_ID__c}
+                        </td>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/Opportunity/' + contract.SBQQ__RenewalOpportunity__r.Id + '/view'}"
+                               class="truncated-name">{!contract.SBQQ__RenewalOpportunity__r.Name}</a>
+                        </td>
+                        <td>
+                            {!contract.SBQQ__RenewalOpportunity__r.StageName}
+                        </td>
+                        <td>
+                            <a target="_blank"
+                               href="{!'/lightning/r/SBQQ__Quote__c/' + contract.AutoRenewalQuote__r.Id + '/view'}"
+                               class="truncated-name">{!contract.AutoRenewalQuote__r.Name}</a>
+                        </td>
+                        <td>
+                            {!contract.AutoRenewalQuote__r.SBQQ__Status__c}
+                        </td>
+                    </tr>
+                </aura:iteration>
+                </tbody>
+            </table>
+        </lightning:card>
+    </div>
+</aura:component>
