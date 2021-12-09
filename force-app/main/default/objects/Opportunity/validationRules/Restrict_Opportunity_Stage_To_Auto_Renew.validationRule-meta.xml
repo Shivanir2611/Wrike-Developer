@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Restrict_Opportunity_Stage_To_Auto_Renew</fullName>
+    <active>true</active>
+    <description>Opportunity stage cannot be auto-renew if the primary quote is sent to docusign</description>
+    <errorConditionFormula>AND(
+ISCHANGED(StageName),
+ISPICKVAL(StageName,&quot;Auto Renew&quot;),
+ISPICKVAL(SBQQ__PrimaryQuote__r.SBQQ__Status__c,&quot;DocuSignSent&quot;)
+)</errorConditionFormula>
+    <errorMessage>Opportunity stage cannot be Auto Renew as the primary quote is sent to Docusign</errorMessage>
+</ValidationRule>
